@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #fafaf5;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-forest-700 hover:bg-forest-600 text-white font-heading font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-forest-700 text-forest-700 hover:bg-forest-700 hover:text-white font-heading font-semibold px-6 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .section-container {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-heading {
+    @apply font-heading font-bold text-forest-700 text-3xl sm:text-4xl;
+  }
+
+  .section-subheading {
+    @apply text-gray-500 text-lg mt-3 leading-relaxed;
+  }
+}
