@@ -8,7 +8,7 @@
  */
 export default function Card({ icon, title, description, badge, badgeColor = 'forest' }) {
   return (
-    <article className="group relative bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+    <article className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-1 transition-all duration-200">
 
       {/* Optional badge */}
       {badge && (
@@ -29,10 +29,10 @@ export default function Card({ icon, title, description, badge, badgeColor = 'fo
       </div>
 
       {/* Content */}
-      <h3 className="font-heading font-semibold text-lg text-gray-800 mb-2 leading-snug">
+      <h3 className="font-heading font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2 leading-snug">
         {title}
       </h3>
-      <p className="text-gray-500 text-sm leading-relaxed">
+      <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
         {description}
       </p>
     </article>

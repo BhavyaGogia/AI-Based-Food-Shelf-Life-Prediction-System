@@ -10,7 +10,7 @@ const placeholderStats = [
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen flex flex-col bg-cream-100">
+    <div className="min-h-screen flex flex-col bg-cream-100 dark:bg-gray-950 transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow">
@@ -34,7 +34,7 @@ export default function Dashboard() {
             {placeholderStats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-xl p-5 text-center shadow-sm border border-gray-100"
+              className="bg-white dark:bg-gray-800 rounded-xl p-5 text-center shadow-sm border border-gray-100 dark:border-gray-700"
               >
                 <p className="text-3xl mb-2">{stat.icon}</p>
                 <p className="font-heading font-bold text-2xl text-forest-700">{stat.value}</p>
@@ -44,7 +44,7 @@ export default function Dashboard() {
           </div>
 
           {/* Placeholder card */}
-          <div className="bg-white rounded-2xl border-2 border-dashed border-forest-200 p-12 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-forest-200 dark:border-forest-800 p-12 text-center">
             <div className="text-5xl mb-4">🔬</div>
             <h2 className="font-heading font-bold text-2xl text-forest-700 mb-3">
               Shelf Life Analysis Form

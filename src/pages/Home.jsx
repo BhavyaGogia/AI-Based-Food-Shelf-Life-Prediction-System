@@ -60,7 +60,7 @@ const productCards = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-cream-100 dark:bg-gray-950 transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow">
@@ -68,7 +68,7 @@ export default function Home() {
         <Hero />
 
         {/* Features Section */}
-        <section id="features" className="py-16 sm:py-24 bg-cream-100">
+        <section id="features" className="py-16 sm:py-24 bg-cream-100 dark:bg-gray-900 transition-colors duration-300">
           <div className="section-container">
             <div className="text-center mb-12">
               <h2 className="section-heading">Everything You Need</h2>
@@ -85,7 +85,7 @@ export default function Home() {
         </section>
 
         {/* Products Section */}
-        <section id="products" className="py-16 sm:py-24 bg-white">
+        <section id="products" className="py-16 sm:py-24 bg-white dark:bg-gray-950 transition-colors duration-300">
           <div className="section-container">
             <div className="text-center mb-12">
               <h2 className="section-heading">HimShakti Products</h2>

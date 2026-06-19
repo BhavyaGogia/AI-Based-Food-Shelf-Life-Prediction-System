@@ -3,21 +3,21 @@ import Footer from '../components/Footer'
 
 export default function Login() {
   return (
-    <div className="min-h-screen flex flex-col bg-cream-100">
+    <div className="min-h-screen flex flex-col bg-cream-100 dark:bg-gray-950 transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow flex items-center justify-center py-16 px-4">
         <div className="w-full max-w-md">
 
           {/* Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 sm:p-10">
 
             {/* Header */}
             <div className="text-center mb-8">
               <div className="w-14 h-14 bg-forest-50 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                 🔐
               </div>
-              <h1 className="font-heading font-bold text-2xl text-gray-900">Staff Login</h1>
+              <h1 className="font-heading font-bold text-2xl text-gray-900 dark:text-white">Staff Login</h1>
               <p className="text-gray-500 text-sm mt-2">
                 Sign in to access the HimShakti Shelf Life Predictor
               </p>
