@@ -45,3 +45,13 @@ export async function analyseShelfLife(formData) {
   }
   return response.json();
 }
+
+export const getPrefetchResult = async (productId) => {
+  const res = await fetch(`/api/shelf-life/prefetch/${productId}`);
+  return res.json();
+};
+
+export const prefetchAll = async () => {
+  const res = await fetch('/api/shelf-life/prefetch-all', { method: 'POST' });
+  return res.json();
+};
