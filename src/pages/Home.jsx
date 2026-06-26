@@ -31,7 +31,7 @@ const featureCards = [
     title: 'Sourcing Insights',
     description: 'Factor in farm altitude, harvest freshness, and transport distance into your prediction.',
     badge: 'New',
-    badgeColor: 'forest',
+    badgeColor: 'emerald',
   },
   {
     icon: '📦',
@@ -60,7 +60,7 @@ const productCards = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-cream-100 dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen flex flex-col transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow">
@@ -68,55 +68,71 @@ export default function Home() {
         <Hero />
 
         {/* Features Section */}
-        <section id="features" className="py-16 sm:py-24 bg-cream-100 dark:bg-gray-900 transition-colors duration-300">
-          <div className="section-container">
-            <div className="text-center mb-12">
+        <section id="features" className="py-20 sm:py-28 relative">
+          <div className="section-container relative z-10">
+            <div className="text-center mb-16 animate-fade-up">
               <h2 className="section-heading">Everything You Need</h2>
               <p className="section-subheading max-w-xl mx-auto">
                 A complete AI toolkit for natural food shelf life prediction — built for HimShakti's production team.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featureCards.map((card) => (
-                <Card key={card.title} {...card} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featureCards.map((card, index) => (
+                <div key={card.title} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <Card {...card} />
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* Products Section */}
-        <section id="products" className="py-16 sm:py-24 bg-white dark:bg-gray-950 transition-colors duration-300">
-          <div className="section-container">
-            <div className="text-center mb-12">
+        <section id="products" className="py-20 sm:py-28 relative overflow-hidden">
+          {/* Background Glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-400/20 dark:bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+          
+          <div className="section-container relative z-10">
+            <div className="text-center mb-16 animate-fade-up">
               <h2 className="section-heading">HimShakti Products</h2>
               <p className="section-subheading max-w-xl mx-auto">
                 Three core product categories — each with unique shelf life characteristics.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              {productCards.map((card) => (
-                <Card key={card.title} {...card} />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              {productCards.map((card, index) => (
+                <div key={card.title} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <Card {...card} />
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* CTA Banner */}
-        <section id="cta-banner" className="py-16 bg-amber-500">
-          <div className="section-container text-center">
-            <h2 className="font-heading font-bold text-3xl sm:text-4xl text-forest-900 mb-4">
-              Ready to Predict Shelf Life?
-            </h2>
-            <p className="text-forest-800 text-lg mb-8 max-w-xl mx-auto">
-              AI analysis coming in Week 3. The full ingredient form will be available in the Dashboard.
-            </p>
-            <a
-              href="/dashboard"
-              id="cta-banner-btn"
-              className="inline-flex items-center gap-2 bg-forest-700 hover:bg-forest-600 text-white font-heading font-semibold px-8 py-3.5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              🔬 Go to Dashboard
-            </a>
+        <section id="cta-banner" className="py-20 relative">
+          <div className="section-container">
+            <div className="glass-panel relative overflow-hidden p-12 text-center rounded-3xl animate-fade-up">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-emerald-400/20 blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-jade-400/20 blur-3xl"></div>
+              
+              <div className="relative z-10">
+                <h2 className="font-heading font-extrabold text-3xl sm:text-5xl text-emerald-950 dark:text-emerald-50 mb-6 tracking-tight">
+                  Ready to Predict Shelf Life?
+                </h2>
+                <p className="text-emerald-800/80 dark:text-emerald-200/80 text-lg sm:text-xl mb-10 max-w-2xl mx-auto font-light">
+                  Week 4 Completed: Full AI analysis and the ingredient form are now live in the Dashboard.
+                </p>
+                <a
+                  href="/dashboard"
+                  id="cta-banner-btn"
+                  className="btn-primary inline-flex items-center gap-3 text-lg px-8 py-4"
+                >
+                  <span className="text-xl">🔬</span>
+                  Go to Dashboard
+                </a>
+              </div>
+            </div>
           </div>
         </section>
       </main>

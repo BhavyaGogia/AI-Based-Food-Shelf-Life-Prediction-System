@@ -3,7 +3,7 @@ import Footer from '../components/Footer'
 
 export default function About() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-cream-100 dark:bg-gray-950 transition-colors duration-300">
       <Navbar />
 
       <main className="flex-grow">
@@ -23,10 +23,10 @@ export default function About() {
           <div className="max-w-3xl">
 
             <section className="mb-10" aria-labelledby="about-company">
-              <h2 id="about-company" className="font-heading font-bold text-2xl text-forest-700 mb-4">
+              <h2 id="about-company" className="font-heading font-bold text-2xl text-forest-700 dark:text-forest-300 mb-4">
                 🏢 About HimShakti
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 HimShakti Food Processing is a company based in Uttarakhand that produces
                 natural Himalayan food products — millet snacks, fruit pickles, and cold-pressed juices —
                 using traditional recipes with <strong>no chemical preservatives</strong>.
@@ -34,25 +34,25 @@ export default function About() {
             </section>
 
             <section className="mb-10" aria-labelledby="about-problem">
-              <h2 id="about-problem" className="font-heading font-bold text-2xl text-forest-700 mb-4">
+              <h2 id="about-problem" className="font-heading font-bold text-2xl text-forest-700 dark:text-forest-300 mb-4">
                 ❗ The Problem
               </h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                 Without chemical preservatives, shelf life varies for every batch depending on ingredients,
                 processing method, and packaging. HimShakti's production team currently estimates expiry
                 dates manually — causing food waste, customer complaints, and inconsistent labeling.
               </p>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 Large companies use expensive lab testing. No affordable tool exists for small food
                 companies in India.
               </p>
             </section>
 
             <section className="mb-10" aria-labelledby="about-solution">
-              <h2 id="about-solution" className="font-heading font-bold text-2xl text-forest-700 mb-4">
+              <h2 id="about-solution" className="font-heading font-bold text-2xl text-forest-700 dark:text-forest-300 mb-4">
                 🤖 Our Solution
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 This web application allows production staff to enter recipe and processing details,
                 and uses the <strong>Google Gemini AI API</strong> to predict exact shelf life — giving
                 the correct expiry date, risk warnings, and suggestions to make products last longer naturally.
@@ -60,10 +60,10 @@ export default function About() {
             </section>
 
             <section aria-labelledby="about-intern">
-              <h2 id="about-intern" className="font-heading font-bold text-2xl text-forest-700 mb-4">
+              <h2 id="about-intern" className="font-heading font-bold text-2xl text-forest-700 dark:text-forest-300 mb-4">
                 👤 Internship Context
               </h2>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                 This project is built as part of the <strong>TBI-GEU Summer Internship 2026</strong>,
                 Track S26_FSD (Frontend + Full Stack Development). The goal is to demonstrate real-world
                 problem solving using React, Tailwind CSS, and the Gemini API.

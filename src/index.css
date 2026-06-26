@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,31 +15,46 @@
     scroll-behavior: smooth;
   }
 
+  ::selection {
+    @apply bg-emerald-500 text-white;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #fafaf5;
-    color: #1a1a1a;
-    -webkit-font-smoothing: antialiased;
+    @apply bg-emerald-50 text-slate-800 antialiased;
+    background-image: radial-gradient(at 0% 0%, hsla(152,100%,92%,1) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, hsla(140,80%,90%,1) 0px, transparent 50%);
+    background-attachment: fixed;
     transition: background-color 0.3s, color 0.3s;
   }
 
   .dark body {
-    background-color: #030712;
-    color: #f3f4f6;
+    @apply bg-midnight text-slate-200;
+    background-image: radial-gradient(at 0% 0%, hsla(160, 60%, 10%, 1) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, hsla(150, 70%, 8%, 1) 0px, transparent 50%);
   }
 
   h1, h2, h3, h4, h5 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-forest-700 hover:bg-forest-600 text-white font-heading font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+    @apply relative overflow-hidden bg-gradient-to-r from-emerald-600 to-jade-500 hover:from-emerald-500 hover:to-jade-400 text-white font-heading font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95;
   }
 
   .btn-secondary {
-    @apply border-2 border-forest-700 text-forest-700 hover:bg-forest-700 hover:text-white font-heading font-semibold px-6 py-3 rounded-lg transition-all duration-200;
+    @apply relative bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/50 font-heading font-medium px-6 py-3 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md active:scale-95;
+  }
+
+  .glass-panel {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50 shadow-glass rounded-2xl;
+  }
+
+  .glass-card {
+    @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/40 dark:border-slate-800 shadow-glass hover:shadow-glass-hover transition-all duration-300 rounded-2xl;
   }
 
   .section-container {
@@ -47,10 +62,10 @@
   }
 
   .section-heading {
-    @apply font-heading font-bold text-forest-700 text-3xl sm:text-4xl;
+    @apply font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-700 via-jade-600 to-emerald-500 dark:from-emerald-400 dark:via-jade-300 dark:to-emerald-200 text-4xl sm:text-5xl tracking-tight;
   }
 
   .section-subheading {
-    @apply text-gray-500 text-lg mt-3 leading-relaxed;
+    @apply text-slate-600 dark:text-slate-400 text-lg mt-3 leading-relaxed font-light;
   }
 }

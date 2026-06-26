@@ -8,38 +8,51 @@ export default {
   theme: {
     extend: {
       colors: {
-        forest: {
-          50:  '#f0faf4',
-          100: '#dcf2e5',
-          200: '#bbe5cd',
-          300: '#8dd0ae',
-          400: '#58b387',
-          500: '#349768',
-          600: '#247a52',
-          700: '#1a4731', // brand primary
-          800: '#163d2a',
-          900: '#133324',
+        emerald: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
         },
-        amber: {
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706', // brand accent
-          700: '#b45309',
+        jade: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          900: '#14532d',
         },
-        cream: {
-          50: '#fefef9',
-          100: '#fafaf5', // brand background
-          200: '#f5f5e8',
-        }
+        glass: {
+          100: 'rgba(255, 255, 255, 0.1)',
+          200: 'rgba(255, 255, 255, 0.2)',
+          500: 'rgba(255, 255, 255, 0.5)',
+          800: 'rgba(255, 255, 255, 0.8)',
+          900: 'rgba(255, 255, 255, 0.9)',
+        },
+        midnight: '#0b1120', // deep rich background
       },
       fontFamily: {
-        heading: ['Poppins', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.05)',
+        'glass-hover': '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+        'glow': '0 0 20px rgba(16, 185, 129, 0.4)',
+      },
       animation: {
-        'fade-up': 'fadeUp 0.5s ease-out',
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
+        'fade-up': 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fadeIn 0.4s ease-out',
+        'slide-down': 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeUp: {
