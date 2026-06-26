@@ -432,7 +432,8 @@ export default function Dashboard() {
                       <option value="raw">Raw (no heat treatment)</option>
                       <option value="boiled">Boiled</option>
                       <option value="fried">Fried</option>
-                      <option value="baked">Baked</option>
+                      <option value="sun_dried">Sun Dried</option>
+                      <option value="cold_pressed">Cold Pressed</option>
                       <option value="fermented">Fermented</option>
                     </select>
                   </div>
@@ -481,7 +482,8 @@ export default function Dashboard() {
                       <option value="glass_jar">Glass Jar</option>
                       <option value="plastic_pouch">Plastic Pouch</option>
                       <option value="tin_can">Tin Can</option>
-                      <option value="vacuum_pack">Vacuum Pack</option>
+                      <option value="pet_bottle">PET Bottle</option>
+                      <option value="paper_bag">Paper Bag</option>
                     </select>
                   </div>
 
@@ -521,7 +523,7 @@ export default function Dashboard() {
                     >
                       <option value="refrigerated">Refrigerate</option>
                       <option value="room_temp">Room Temperature</option>
-                      <option value="freezer">Freezer</option>
+                      <option value="consume_immediately">Consume Immediately</option>
                     </select>
                   </div>
                 </div>
