@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
 import ResultCard from '../components/ResultCard'
 import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll } from '../api/shelfLife'
 
 export default function Dashboard() {
+  const { theme, toggleTheme } = useTheme()
+  const dashboardRef = useRef(null)
+  
   const [products, setProducts] = useState([])
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState(null)
@@ -134,6 +137,22 @@ export default function Dashboard() {
   useEffect(() => {
     fetchProductsAndStats();
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view')
+        }
+      })
+    }, { threshold: 0.1 })
+    
+    if (dashboardRef.current) {
+      const elements = dashboardRef.current.querySelectorAll('.reveal')
+      elements.forEach(el => observer.observe(el))
+    }
+    return () => observer.disconnect()
+  }, [products, stats, mode])
 
   // Fetch prefetch/cache result when product selected in quick mode
   const fetchCachedResult = (productId) => {
@@ -328,37 +347,141 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-emerald-50 dark:bg-midnight transition-colors duration-300">
-      <Navbar />
-
-      <main className="flex-grow">
-        {/* Banner */}
-        <div className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white py-16">
-          <div className="section-container text-center sm:text-left">
-            <h1 className="font-heading font-extrabold text-4xl sm:text-5xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-100 to-emerald-300">
-              Analysis Dashboard
-            </h1>
-            <p className="text-white/80 text-lg max-w-xl">
-              Configure food production metrics and trigger Gemini AI predictions for shelf-life estimation.
-            </p>
+    <div className="min-h-screen flex bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body" ref={dashboardRef}>
+      
+      {/* Sticky Sidebar */}
+      <aside className="w-[260px] hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/10 shadow-sm dark:shadow-glass z-40">
+        <div className="p-8">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/15 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform">
+              🌾
+            </div>
+            <div className="leading-tight">
+              <p className="font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-emerald-700 dark:from-white dark:to-neon text-xl tracking-tight">HimShakti</p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-widest font-bold">Predictor</p>
+            </div>
+          </Link>
+        </div>
+        <nav className="flex-grow px-4 mt-6 space-y-3">
+          <Link to="/dashboard" className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white dark:from-emerald-500 dark:to-neon dark:text-dark-950 shadow-md dark:shadow-glow font-extrabold transition-all hover:scale-[1.02]">
+            <span className="text-xl">📊</span> Overview
+          </Link>
+          <Link to="/" className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-emerald-700 dark:hover:text-white font-semibold transition-all">
+            <span className="text-xl">🏠</span> Home
+          </Link>
+          <Link to="/about" className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-emerald-700 dark:hover:text-white font-semibold transition-all">
+            <span className="text-xl">ℹ️</span> About
+          </Link>
+        </nav>
+        <div className="p-6 m-4 mt-auto bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-2xl flex items-center gap-4 border border-black/5 dark:border-white/10">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 dark:from-neon dark:to-violet flex items-center justify-center text-white dark:text-dark-950 font-extrabold text-base shadow-sm dark:shadow-glow">HS</div>
+          <div className="text-sm">
+            <p className="font-bold text-slate-900 dark:text-white">Staff Portal</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">AI Production</p>
           </div>
         </div>
+      </aside>
 
-        <div className="section-container py-12">
+      {/* Main Content */}
+      <main className="flex-grow flex flex-col lg:ml-[260px] min-w-0">
+        
+        {/* Sticky Blurred Topbar */}
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-dark-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-8 py-6 flex items-center justify-between">
+          <h1 className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white tracking-tight">Analysis Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-neon hover:border-emerald-500/40 dark:hover:border-neon/40 transition-colors shadow-sm"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+          </div>
+        </header>
+
+        <div className="p-8 max-w-7xl mx-auto w-full">
           {/* Dynamic Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {[
-              { icon: '📦', label: 'Analyses Run', value: stats.analysesRun, color: 'text-emerald-600 dark:text-emerald-400' },
-              { icon: '🌾', label: 'Products Tracked', value: stats.productsTracked, color: 'text-emerald-700 dark:text-emerald-300' },
-              { icon: '✅', label: 'Safe Batches', value: stats.safeBatches, color: 'text-teal-600 dark:text-teal-400' },
-              { icon: '⚠️', label: 'Risk Warnings', value: stats.riskWarnings, color: 'text-rose-600 dark:text-rose-400' },
-            ].map((stat) => (
-              <div key={stat.label} className="glass-card p-5 text-center shadow-md border border-white/20 dark:border-slate-800/80">
-                <p className="text-3xl mb-2">{stat.icon}</p>
-                <p className={`font-heading font-bold text-3xl ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">{stat.label}</p>
+              { icon: '📦', label: 'Analyses Run', value: stats.analysesRun, color: 'text-emerald-600 dark:text-neon' },
+              { icon: '🌾', label: 'Products Tracked', value: stats.productsTracked, color: 'text-emerald-600 dark:text-emerald-400' },
+              { icon: '✅', label: 'Safe Batches', value: stats.safeBatches, color: 'text-teal-600 dark:text-teal-300' },
+              { icon: '⚠️', label: 'Risk Warnings', value: stats.riskWarnings, color: 'text-rose-600 dark:text-pinkGlow' },
+            ].map((stat, i) => (
+              <div key={stat.label} className="glass-card p-6 reveal hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
+                <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                  {stat.icon}
+                </div>
+                <p className={`font-heading font-extrabold text-4xl mb-2 ${stat.color}`}>{stat.value}</p>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800">
+              <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Shelf Life Trends</h3>
+              <div className="h-48 w-full border-b-2 border-l-2 border-slate-200 dark:border-slate-800 relative flex items-end justify-between pt-4 px-4 pb-0">
+                {[40, 70, 45, 90, 65, 80].map((h, i) => (
+                  <div key={i} className="w-10 sm:w-12 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t-xl hover:opacity-80 transition-all cursor-pointer hover:-translate-y-2" style={{ height: `${h}%` }}></div>
+                ))}
+              </div>
+            </div>
+            <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800" style={{ transitionDelay: '100ms' }}>
+              <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Risk Distribution</h3>
+              <div className="h-48 w-full flex items-center justify-center">
+                <div className="w-36 h-36 rounded-full border-[14px] border-emerald-500 border-r-amber-400 border-t-emerald-500 border-l-emerald-500 relative animate-blob-rotate shadow-lg">
+                  <div className="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-slate-900 dark:text-slate-200">AI</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Predictions Table */}
+          <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
+            <div className="p-8 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Recent Predictions</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
+                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
+                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">SKU</th>
+                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Category</th>
+                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.slice(0, 5).map((p, i) => {
+                    let status = 'Fresh';
+                    let statusPill = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+                    if (p.riskLevel === 'HIGH') {
+                      status = 'Expired';
+                      statusPill = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800';
+                    } else if (p.predictedShelfLifeDays && p.predictedShelfLifeDays < 30) {
+                      status = 'Expiring';
+                      statusPill = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+                    }
+                    return (
+                      <tr key={p._id} className="reveal border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors" style={{ transitionDelay: `${i * 100}ms` }}>
+                        <td className="py-5 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
+                        <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
+                        <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.category}</td>
+                        <td className="py-5 px-8">
+                          <span className={`px-4 py-1.5 text-xs font-bold rounded-full border shadow-sm ${statusPill}`}>{status}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {products.length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="py-8 text-center text-slate-500">No predictions run yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Mode Toggle Tabs Pills */}
@@ -791,7 +914,7 @@ export default function Dashboard() {
                       <p className="text-5xl mb-4 opacity-75">🔬</p>
                       <h3 className="font-heading font-bold text-xl text-slate-600 dark:text-slate-400 mb-2">No Analysis Run Yet</h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                        Select a product and configure production metrics, then click <strong>Analyse Shelf Life</strong> to query Gemini AI.
+                        Select a product and configure production metrics, then click <strong>Analyse Shelf Life</strong> to run AI analysis.
                       </p>
                     </div>
                   )}
@@ -820,7 +943,7 @@ export default function Dashboard() {
 
               {adminProcessing && (
                 <div className="mt-4 text-sm text-emerald-600 dark:text-emerald-400 animate-pulse font-medium">
-                  ⏳ Processing... please wait (this calls Gemini AI with 1500ms delay per product)
+                  ⏳ Processing... please wait (running batch AI processing per product)
                 </div>
               )}
 
@@ -834,8 +957,6 @@ export default function Dashboard() {
 
         </div>
       </main>
-
-      <Footer />
     </div>
   )
 }

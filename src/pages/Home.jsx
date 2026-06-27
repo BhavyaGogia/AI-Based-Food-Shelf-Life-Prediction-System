@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Card from '../components/Card'
@@ -59,26 +60,48 @@ const productCards = [
 ]
 
 export default function Home() {
+  const mainRef = useRef(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view')
+        }
+      })
+    }, { threshold: 0.1 })
+    
+    if (mainRef.current) {
+      const elements = mainRef.current.querySelectorAll('.reveal')
+      elements.forEach(el => observer.observe(el))
+    }
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow" ref={mainRef}>
         {/* Hero Section */}
         <Hero />
 
-        {/* Features Section */}
-        <section id="features" className="py-20 sm:py-28 relative">
+        {/* Features Section — Bento Grid Style */}
+        <section id="features" className="py-32 relative overflow-hidden">
+          {/* Background Ambient Lighting */}
+          <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-neon/10 blur-[150px] rounded-full pointer-events-none" />
+          
           <div className="section-container relative z-10">
-            <div className="text-center mb-16 animate-fade-up">
+            <div className="text-center mb-24 reveal">
               <h2 className="section-heading">Everything You Need</h2>
-              <p className="section-subheading max-w-xl mx-auto">
+              <p className="section-subheading max-w-2xl mx-auto mt-6">
                 A complete AI toolkit for natural food shelf life prediction — built for HimShakti's production team.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featureCards.map((card, index) => (
-                <div key={card.title} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
+                <div key={card.title} className={`reveal ${index === 0 || index === 3 ? 'md:col-span-2 lg:col-span-1' : ''}`} style={{ transitionDelay: `${index * 100}ms` }}>
                   <Card {...card} />
                 </div>
               ))}
@@ -87,48 +110,69 @@ export default function Home() {
         </section>
 
         {/* Products Section */}
-        <section id="products" className="py-20 sm:py-28 relative overflow-hidden">
+        <section id="products" className="py-32 relative overflow-hidden bg-slate-100/80 dark:bg-dark-900/50 border-y border-slate-200 dark:border-white/10 transition-colors duration-500">
           {/* Background Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-400/20 dark:bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 dark:bg-violet/10 blur-[150px] rounded-full pointer-events-none animate-pulse-slow"></div>
           
           <div className="section-container relative z-10">
-            <div className="text-center mb-16 animate-fade-up">
+            <div className="text-center mb-24 reveal">
               <h2 className="section-heading">HimShakti Products</h2>
-              <p className="section-subheading max-w-xl mx-auto">
+              <p className="section-subheading max-w-2xl mx-auto mt-6">
                 Three core product categories — each with unique shelf life characteristics.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {productCards.map((card, index) => (
-                <div key={card.title} className="animate-fade-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <Card {...card} />
+                <div key={card.title} className="reveal" style={{ transitionDelay: `${index * 120}ms` }}>
+                  <Card {...card} isProduct={true} />
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA Banner */}
-        <section id="cta-banner" className="py-20 relative">
+        {/* New Stats Section — Cinematic Counter Grid */}
+        <section id="stats" className="py-28 bg-white dark:bg-gradient-to-r dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 text-slate-900 dark:text-white relative overflow-hidden border-b border-slate-200 dark:border-white/10 transition-colors duration-500">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wMykiLz48L3N2Zz4=')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-30" />
+          <div className="section-container relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+              {[
+                { value: '500+', label: 'Predictions Run' },
+                { value: '3', label: 'HimShakti Product Lines' },
+                { value: '98%', label: 'Prediction Accuracy' },
+                { value: '12 months', label: 'Max Shelf Life Tracked' },
+              ].map((stat, i) => (
+                <div key={stat.label} className="reveal p-6 glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500 shadow-sm dark:shadow-none" style={{ transitionDelay: `${i * 120}ms` }}>
+                  <p className="font-heading font-extrabold text-5xl sm:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-700 to-teal-600 dark:from-white dark:via-neon dark:to-emerald-400 mb-4 drop-shadow-sm">{stat.value}</p>
+                  <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-widest">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Banner — Liquid Glass Glow Sweep */}
+        <section id="cta-banner" className="py-32 relative overflow-hidden">
           <div className="section-container">
-            <div className="glass-panel relative overflow-hidden p-12 text-center rounded-3xl animate-fade-up">
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-emerald-400/20 blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-jade-400/20 blur-3xl"></div>
+            <div className="glass-panel relative overflow-hidden p-16 sm:p-20 text-center rounded-3xl reveal border border-slate-200 dark:border-white/20 shadow-xl dark:shadow-glass-hover bg-white/90 dark:bg-gradient-to-br dark:from-dark-900/90 dark:via-dark-850/90 dark:to-dark-900/90">
               
-              <div className="relative z-10">
-                <h2 className="font-heading font-extrabold text-3xl sm:text-5xl text-emerald-950 dark:text-emerald-50 mb-6 tracking-tight">
+              {/* Glow Blobs */}
+              <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-neon/20 blur-3xl pointer-events-none"></div>
+              <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-blue-500/10 dark:bg-violet/20 blur-3xl pointer-events-none"></div>
+              
+              <div className="relative z-10 max-w-3xl mx-auto">
+                <h2 className="font-heading font-extrabold text-4xl sm:text-6xl text-slate-900 dark:text-white mb-8 tracking-tight">
                   Ready to Predict Shelf Life?
                 </h2>
-                <p className="text-emerald-800/80 dark:text-emerald-200/80 text-lg sm:text-xl mb-10 max-w-2xl mx-auto font-light">
+                <p className="text-slate-700 dark:text-slate-300 text-lg sm:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
                   Week 4 Completed: Full AI analysis and the ingredient form are now live in the Dashboard.
                 </p>
                 <a
                   href="/dashboard"
                   id="cta-banner-btn"
-                  className="btn-primary inline-flex items-center gap-3 text-lg px-8 py-4"
+                  className="btn-primary inline-flex items-center gap-4 text-xl px-12 py-5 shadow-md dark:shadow-glow hover:scale-105"
                 >
-                  <span className="text-xl">🔬</span>
+                  <span className="text-2xl">🔬</span>
                   Go to Dashboard
                 </a>
               </div>

@@ -97,7 +97,7 @@ export default function UIShowcase() {
             }
           >
             <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-              Are you sure you want to run the shelf life analysis for the millet snack recipe? This counts against your monthly API prediction limit.
+              Are you sure you want to run the shelf life analysis for the millet snack recipe? This counts against your monthly prediction limit.
             </p>
           </Modal>
         </div>
