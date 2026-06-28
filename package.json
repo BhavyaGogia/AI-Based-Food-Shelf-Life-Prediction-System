@@ -1,0 +1,9 @@
+{
+  "name": "himshakti-fullstack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently --kill-others \"npm run dev --prefix backend\" \"npm run dev --prefix himshakti-shelf-life\"",
+    "seed": "npm run seed --prefix backend"
+  }
+}

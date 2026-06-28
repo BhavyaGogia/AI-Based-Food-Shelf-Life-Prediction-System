@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "HimShakti Shelf Life REST API",
+		"description": "Complete Postman collection for HimShakti Food Shelf Life Prediction System backend endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. GET All Products (List & Filter)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/products?limit=10",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "products"],
+					"query": [{ "key": "limit", "value": "10" }]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - Products List",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"count\": 2, \"data\": [{\"_id\": \"660f1a2b3c4d5e6f7a8b9c0d\", \"name\": \"Millet Crisp Bar\", \"category\": \"Snacks\", \"isActive\": true}]}"
+				}
+			]
+		},
+		{
+			"name": "2. GET Single Product by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/products/660f1a2b3c4d5e6f7a8b9c0d",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "products", "660f1a2b3c4d5e6f7a8b9c0d"]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - Single Product",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"data\": {\"_id\": \"660f1a2b3c4d5e6f7a8b9c0d\", \"name\": \"Millet Crisp Bar\", \"category\": \"Snacks\"}}"
+				}
+			]
+		},
+		{
+			"name": "3. POST Create New Product",
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Himalayan Organic Pickle\",\n  \"category\": \"Pickles\",\n  \"moistureContentPct\": 12.5,\n  \"waterActivityAw\": 0.65,\n  \"pH\": 4.2,\n  \"storageTempC\": 25\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/products",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "products"]
+				}
+			},
+			"response": [
+				{
+					"name": "201 Created - Product Added",
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"message\": \"Product created successfully\", \"data\": {\"_id\": \"660f999b3c4d5e6f7a8b9c99\", \"name\": \"Himalayan Organic Pickle\"}}"
+				}
+			]
+		},
+		{
+			"name": "4. PUT Update Product Metrics",
+			"request": {
+				"method": "PUT",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"storageTempC\": 20,\n  \"riskLevel\": \"LOW\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/products/660f1a2b3c4d5e6f7a8b9c0d",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "products", "660f1a2b3c4d5e6f7a8b9c0d"]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - Product Updated",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"message\": \"Product updated successfully\"}"
+				}
+			]
+		},
+		{
+			"name": "5. DELETE Soft Delete Product",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/products/660f1a2b3c4d5e6f7a8b9c0d",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "products", "660f1a2b3c4d5e6f7a8b9c0d"]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - Product Deactivated",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"message\": \"Product soft deleted (deactivated) successfully\"}"
+				}
+			]
+		},
+		{
+			"name": "6. POST Run AI Shelf Life Analysis",
+			"request": {
+				"method": "POST",
+				"header": [{ "key": "Content-Type", "value": "application/json" }],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"productId\": \"660f1a2b3c4d5e6f7a8b9c0d\",\n  \"packagingType\": \"Glass Jar\",\n  \"hermeticallySealed\": true,\n  \"storageCondition\": \"Room Temperature (Dry)\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/shelf-life/analyse",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["api", "shelf-life", "analyse"]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - AI Prediction Result",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"success\": true, \"data\": {\"predictedShelfLifeDays\": 180, \"riskLevel\": \"LOW\", \"recommendations\": [\"Store in cool dry place\"]}}"
+				}
+			]
+		},
+		{
+			"name": "7. GET Service Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/health",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "5000",
+					"path": ["health"]
+				}
+			},
+			"response": [
+				{
+					"name": "200 OK - Health Status",
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\"status\": \"ok\", \"service\": \"himshakti-shelf-life-api\", \"db\": \"connected\"}"
+				}
+			]
+		}
+	]
+}

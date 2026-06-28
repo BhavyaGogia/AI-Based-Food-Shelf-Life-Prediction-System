@@ -1,0 +1,14 @@
+{
+  "name": "himshakti-dataset-tools",
+  "version": "1.0.0",
+  "description": "Dataset generation and validation tools for HimShakti AI Shelf Life Prediction System — TBI-GEU Internship 2026",
+  "scripts": {
+    "generate": "node generate_synthetic_dataset.js",
+    "validate": "node validate_and_compare.js",
+    "open-report": "start validation_report.html"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
