@@ -1,14 +1,13 @@
 {
   "name": "himshakti-shelf-life",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "backend": "npm run dev --prefix backend"
+    "preview": "vite preview"
   },
   "dependencies": {
     "framer-motion": "^12.42.0",

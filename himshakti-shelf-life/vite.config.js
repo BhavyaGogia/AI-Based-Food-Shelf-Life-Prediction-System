@@ -14,5 +14,8 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react', 'lenis']
   }
 })
