@@ -28,8 +28,12 @@ function generateUniqueName(category, index) {
 
 async function importDataset() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ Connected to MongoDB Atlas');
+    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('localhost')) {
+      console.log('⚠️ Localhost / missing MongoDB URI detected. Processing CSV dataset offline...');
+    } else {
+      await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 2000 });
+      console.log('✅ Connected to MongoDB Atlas');
+    }
 
     // Read the generated CSV file
     const csvPath = path.join(__dirname, '../../himshakti_synthetic_dataset.csv');
@@ -84,12 +88,17 @@ async function importDataset() {
       });
     }
 
-    console.log(`🗑️ Clearing existing active products...`);
-    await Product.deleteMany({});
+    if (mongoose.connection.readyState === 1) {
+      console.log(`🗑️ Clearing existing active products...`);
+      await Product.deleteMany({});
 
-    console.log(`🌱 Inserting ${productsToInsert.length} products with descriptive names...`);
-    const inserted = await Product.insertMany(productsToInsert);
-    console.log(`✅ Successfully seeded ${inserted.length} descriptive products in Atlas!`);
+      console.log(`🌱 Inserting ${productsToInsert.length} products with descriptive names...`);
+      const inserted = await Product.insertMany(productsToInsert);
+      console.log(`✅ Successfully seeded ${inserted.length} descriptive products in Atlas!`);
+    } else {
+      console.log(`📊 Dry-Run / Offline Mode: Successfully processed ${productsToInsert.length} records from synthetic CSV dataset!`);
+      console.log(`💡 Example Record 1:`, productsToInsert[0]);
+    }
 
     process.exit(0);
   } catch (err) {
