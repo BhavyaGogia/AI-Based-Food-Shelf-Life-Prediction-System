@@ -9,24 +9,24 @@ import { useAuth } from '../context/AuthContext'
 export default function Dashboard() {
   const { theme, toggleTheme } = useTheme()
   const dashboardRef = useRef(null)
-  
+
   const [products, setProducts] = useState([])
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState(null)
-  
+
   const [mode, setMode] = useState('deep')
   const [currentStep, setCurrentStep] = useState(1)
-  
+
   // Prefetch cache state for Quick View
   const [prefetchLoading, setPrefetchLoading] = useState(false)
   const [prefetchResult, setPrefetchResult] = useState(null)
   const [prefetchError, setPrefetchError] = useState(null)
   const [lastAnalysedDate, setLastAnalysedDate] = useState(null)
-  
+
   // Admin panel state
   const [adminProcessing, setAdminProcessing] = useState(false)
   const [adminMessage, setAdminMessage] = useState(null)
-  
+
   // Dynamic stats state
   const [stats, setStats] = useState({
     analysesRun: 0,
@@ -54,28 +54,28 @@ export default function Dashboard() {
       transportDistanceKm: 12,
       storageBeforeDelivery: 'one_to_two_days'
     },
-    ingredients: { 
-      saltPercent: 10, 
-      oilPercent: 20, 
-      moisturePercent: 15, 
+    ingredients: {
+      saltPercent: 10,
+      oilPercent: 20,
+      moisturePercent: 15,
       waterActivity: 'not_sure',
       vinegarPercent: 2,
       sugarPercent: 5,
       turmericPercent: 1,
       otherSpices: 'Chili, Mustard seeds'
     },
-    processing: { 
-      method: 'raw', 
+    processing: {
+      method: 'raw',
       durationValue: 2,
       durationUnit: 'hours',
       temperatureCelsius: 25,
-      heatTreatedBeforeSealing: false, 
-      phLevel: 'below_3_5' 
+      heatTreatedBeforeSealing: false,
+      phLevel: 'below_3_5'
     },
-    packaging: { 
-      packagingType: 'glass_jar', 
-      isAirtight: true, 
-      sealedStorageCondition: 'room_temp_dry', 
+    packaging: {
+      packagingType: 'glass_jar',
+      isAirtight: true,
+      sealedStorageCondition: 'room_temp_dry',
       afterOpeningStorage: 'refrigerated',
       storageHumidity: 'moderate',
       distributionChannels: ['Local Retail', 'Direct-to-Consumer']
@@ -85,7 +85,7 @@ export default function Dashboard() {
       knownIssues: []
     }
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -101,7 +101,7 @@ export default function Dashboard() {
         if (res.success) {
           const fetchedProducts = res.data || []
           setProducts(fetchedProducts)
-          
+
           // Calculate initial fallback stats
           const fallbackStats = {
             analysesRun: fetchedProducts.filter(p => p.predictedShelfLifeDays !== null && p.predictedShelfLifeDays !== undefined).length,
@@ -147,7 +147,7 @@ export default function Dashboard() {
         }
       })
     }, { threshold: 0.1 })
-    
+
     if (dashboardRef.current) {
       const elements = dashboardRef.current.querySelectorAll('.reveal')
       elements.forEach(el => observer.observe(el))
@@ -162,7 +162,7 @@ export default function Dashboard() {
       setPrefetchError(null);
       return;
     }
-    
+
     setPrefetchLoading(true);
     setPrefetchError(null);
     setPrefetchResult(null);
@@ -189,7 +189,7 @@ export default function Dashboard() {
   const handleProductSelect = (e) => {
     const selectedId = e.target.value;
     const product = products.find(p => p._id === selectedId);
-    
+
     if (!product) {
       setFormData(prev => ({
         ...prev,
@@ -205,7 +205,7 @@ export default function Dashboard() {
       setPrefetchError(null);
       return;
     }
-    
+
     setFormData(prev => ({
       ...prev,
       productIdentity: {
@@ -245,7 +245,7 @@ export default function Dashboard() {
       setError('Please select a product first');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
 
@@ -254,13 +254,13 @@ export default function Dashboard() {
 
       if (data.success) {
         setResult(data.data);
-        
+
         // Dynamically update stats after successful analysis
         setStats(prev => {
           const isHighRisk = data.data.riskLevel === 'HIGH';
           const originalProduct = products.find(p => p._id === formData.productIdentity.productId);
           const hadHighRiskBefore = originalProduct?.riskLevel === 'HIGH';
-          
+
           let riskWarningsDiff = 0;
           if (isHighRisk && !hadHighRiskBefore) {
             riskWarningsDiff = 1;
@@ -349,7 +349,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body" ref={dashboardRef}>
       <StarfieldCanvas />
-      
+
       {/* Sticky Sidebar */}
       <aside className="w-[260px] hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white/40 dark:bg-dark-900/40 backdrop-blur-xl border-r border-slate-200 dark:border-white/10 shadow-sm dark:shadow-glass z-40">
         <div className="p-8">
@@ -390,7 +390,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-grow flex flex-col lg:ml-[260px] min-w-0">
-        
+
         {/* Sticky Blurred Topbar */}
         <header className="sticky top-0 z-30 bg-white/40 dark:bg-dark-950/40 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-8 py-6 flex items-center justify-between">
           <h1 className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white tracking-tight">Analysis Dashboard</h1>
@@ -405,7 +405,7 @@ export default function Dashboard() {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto w-full">
-          
+
           {isAdmin && (
             <>
               {/* Dynamic Stats Cards */}
@@ -504,27 +504,25 @@ export default function Dashboard() {
             {/* Quick Analysis Mode Layout */}
             {mode === 'quick' && (
               <div className="lg:col-span-7 space-y-8 animate-fade-in">
-                
+
                 {/* Mode Toggle Tabs Pills */}
                 <div className="flex justify-start mb-2">
                   <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-full flex space-x-1 border border-white/10 shadow-sm">
                     <button
                       onClick={() => setMode('quick')}
-                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                        mode === 'quick'
+                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${mode === 'quick'
                           ? 'bg-emerald-600 text-white shadow-md'
                           : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                      }`}
+                        }`}
                     >
                       <span>⚡ Quick Analysis</span>
                     </button>
                     <button
                       onClick={() => setMode('deep')}
-                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                        mode === 'deep'
+                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${mode === 'deep'
                           ? 'bg-emerald-600 text-white shadow-md'
                           : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                      }`}
+                        }`}
                     >
                       <span>🔬 Deep Analysis</span>
                     </button>
@@ -543,7 +541,7 @@ export default function Dashboard() {
                     ) : productsError ? (
                       <div className="text-sm text-rose-500 py-2">❌ {productsError}</div>
                     ) : (
-                      <select 
+                      <select
                         className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
                         onChange={handleProductSelect}
                         value={formData.productIdentity.productId}
@@ -557,17 +555,17 @@ export default function Dashboard() {
                       </select>
                     )}
                   </div>
-                  
+
                   <div className="mt-8 text-center">
-                    <button 
-                      onClick={handleAnalyse} 
+                    <button
+                      onClick={handleAnalyse}
                       disabled={loading || !formData.productIdentity.productId}
                       className="btn-primary flex items-center justify-center space-x-2 w-full py-4 rounded-xl text-lg font-bold shadow-lg"
                     >
                       <span>{loading ? '🤖 Analysing...' : '⚡ Run Quick Analysis'}</span>
                     </button>
                   </div>
-                  
+
                   {error && <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl font-medium animate-pulse">❌ {error}</div>}
                 </div>
               </div>
@@ -584,21 +582,19 @@ export default function Dashboard() {
                     <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-full flex space-x-1 border border-white/10 shadow-sm">
                       <button
                         onClick={() => setMode('quick')}
-                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                          mode === 'quick'
+                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${mode === 'quick'
                             ? 'bg-emerald-600 text-white shadow-md'
                             : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                        }`}
+                          }`}
                       >
                         <span>⚡ Quick Analysis</span>
                       </button>
                       <button
                         onClick={() => setMode('deep')}
-                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                          mode === 'deep'
+                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${mode === 'deep'
                             ? 'bg-emerald-600 text-white shadow-md'
                             : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                        }`}
+                          }`}
                       >
                         <span>🔬 Deep Analysis</span>
                       </button>
@@ -613,300 +609,300 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                  {/* Progress Bar */}
-                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
-                      style={{ width: `${(currentStep / 4) * 100}%` }}
-                    />
-                  </div>
-
-                  {/* Step Forms */}
-                  {currentStep === 1 && (
-                    <div className="space-y-6 animate-fade-in">
-                      <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 1: Product Identity</h3>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Select Product (Required)</label>
-                        {productsLoading ? (
-                          <div className="text-sm text-emerald-600 dark:text-emerald-400 animate-pulse py-2">🌾 Loading products database...</div>
-                        ) : productsError ? (
-                          <div className="text-sm text-rose-500 py-2">❌ {productsError}</div>
-                        ) : (
-                          <select 
-                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                            onChange={handleProductSelect}
-                            value={formData.productIdentity.productId}
-                          >
-                            <option value="">-- Choose a product --</option>
-                            {products.map(p => (
-                              <option key={p._id} value={p._id}>
-                                {p.lastAnalysisResult ? '⚡ ' : ''}{p.productName} ({p.sku})
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">SKU</label>
-                          <input 
-                            type="text" 
-                            readOnly 
-                            placeholder="Select product to auto-fill"
-                            value={formData.productIdentity.sku}
-                            className="w-full p-3 border rounded-xl bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-900 text-slate-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Category</label>
-                          <input 
-                            type="text" 
-                            readOnly 
-                            placeholder="Select product to auto-fill"
-                            value={formData.productIdentity.category}
-                            className="w-full p-3 border rounded-xl bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-900 text-slate-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Batch Reference</label>
-                          <input 
-                            type="text" 
-                            value={formData.productIdentity.batchReference}
-                            onChange={(e) => handleInputChange('productIdentity', 'batchReference', e.target.value)}
-                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Analysis Date</label>
-                          <input 
-                            type="date" 
-                            value={formData.productIdentity.analysisDate}
-                            onChange={(e) => handleInputChange('productIdentity', 'analysisDate', e.target.value)}
-                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          />
-                        </div>
-                      </div>
+                    {/* Progress Bar */}
+                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
+                        style={{ width: `${(currentStep / 4) * 100}%` }}
+                      />
                     </div>
-                  )}
 
-                  {currentStep === 2 && (
-                    <div className="space-y-6 animate-fade-in">
-                      <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 2: Sourcing & Ingredients</h3>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Primary Ingredient</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.sourcing.primaryIngredient}
-                          onChange={(e) => handleInputChange('sourcing', 'primaryIngredient', e.target.value)}
-                        >
-                          <option value="raw_mango">Raw Mango</option>
-                          <option value="wild_turmeric">Wild Turmeric</option>
-                          <option value="organic_ginger">Organic Ginger</option>
-                          <option value="apricot">Apricot</option>
-                          <option value="wild_berry">Wild Berry</option>
-                          <option value="himalayan_millet">Himalayan Millet</option>
-                          <option value="mustard">Mustard</option>
-                        </select>
-                      </div>
+                    {/* Step Forms */}
+                    {currentStep === 1 && (
+                      <div className="space-y-6 animate-fade-in">
+                        <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 1: Product Identity</h3>
 
-                      <div>
-                        <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                          <span>Salt Percentage</span>
-                          <span className="text-emerald-600 font-bold">{formData.ingredients.saltPercent}%</span>
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Select Product (Required)</label>
+                          {productsLoading ? (
+                            <div className="text-sm text-emerald-600 dark:text-emerald-400 animate-pulse py-2">🌾 Loading products database...</div>
+                          ) : productsError ? (
+                            <div className="text-sm text-rose-500 py-2">❌ {productsError}</div>
+                          ) : (
+                            <select
+                              className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                              onChange={handleProductSelect}
+                              value={formData.productIdentity.productId}
+                            >
+                              <option value="">-- Choose a product --</option>
+                              {products.map(p => (
+                                <option key={p._id} value={p._id}>
+                                  {p.lastAnalysisResult ? '⚡ ' : ''}{p.productName} ({p.sku})
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </div>
-                        <input 
-                          type="range" min="0" max="30" step="0.5"
-                          value={formData.ingredients.saltPercent}
-                          onChange={(e) => handleInputChange('ingredients', 'saltPercent', parseFloat(e.target.value))}
-                          className="w-full accent-emerald-600"
-                        />
-                      </div>
 
-                      <div>
-                        <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                          <span>Oil Percentage</span>
-                          <span className="text-emerald-600 font-bold">{formData.ingredients.oilPercent}%</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">SKU</label>
+                            <input
+                              type="text"
+                              readOnly
+                              placeholder="Select product to auto-fill"
+                              value={formData.productIdentity.sku}
+                              className="w-full p-3 border rounded-xl bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-900 text-slate-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Category</label>
+                            <input
+                              type="text"
+                              readOnly
+                              placeholder="Select product to auto-fill"
+                              value={formData.productIdentity.category}
+                              className="w-full p-3 border rounded-xl bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-900 text-slate-500"
+                            />
+                          </div>
                         </div>
-                        <input 
-                          type="range" min="0" max="50" step="0.5"
-                          value={formData.ingredients.oilPercent}
-                          onChange={(e) => handleInputChange('ingredients', 'oilPercent', parseFloat(e.target.value))}
-                          className="w-full accent-emerald-600"
-                        />
-                      </div>
 
-                      <div>
-                        <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                          <span>Moisture Percentage</span>
-                          <span className="text-emerald-600 font-bold">{formData.ingredients.moisturePercent}%</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Batch Reference</label>
+                            <input
+                              type="text"
+                              value={formData.productIdentity.batchReference}
+                              onChange={(e) => handleInputChange('productIdentity', 'batchReference', e.target.value)}
+                              className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Analysis Date</label>
+                            <input
+                              type="date"
+                              value={formData.productIdentity.analysisDate}
+                              onChange={(e) => handleInputChange('productIdentity', 'analysisDate', e.target.value)}
+                              className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            />
+                          </div>
                         </div>
-                        <input 
-                          type="range" min="0" max="50" step="0.5"
-                          value={formData.ingredients.moisturePercent}
-                          onChange={(e) => handleInputChange('ingredients', 'moisturePercent', parseFloat(e.target.value))}
-                          className="w-full accent-emerald-600"
-                        />
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Water Activity (Aw)</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.ingredients.waterActivity}
-                          onChange={(e) => handleInputChange('ingredients', 'waterActivity', e.target.value)}
-                        >
-                          <option value="below_0_80">Low (below 0.80)</option>
-                          <option value="0_80_to_0_90">Medium (0.80–0.90)</option>
-                          <option value="above_0_90">High (above 0.90)</option>
-                          <option value="not_sure">Unsure / Not Measured</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 3 && (
-                    <div className="space-y-6 animate-fade-in">
-                      <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 3: Processing Details</h3>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Processing Method</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.processing.method}
-                          onChange={(e) => handleInputChange('processing', 'method', e.target.value)}
-                        >
-                          <option value="raw">Raw (no heat treatment)</option>
-                          <option value="boiled">Boiled</option>
-                          <option value="fried">Fried</option>
-                          <option value="sun_dried">Sun Dried</option>
-                          <option value="cold_pressed">Cold Pressed</option>
-                          <option value="fermented">Fermented</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
-                        <input 
-                          type="checkbox"
-                          id="heatTreated"
-                          checked={formData.processing.heatTreatedBeforeSealing}
-                          onChange={(e) => handleInputChange('processing', 'heatTreatedBeforeSealing', e.target.checked)}
-                          className="w-5 h-5 rounded accent-emerald-600"
-                        />
-                        <label htmlFor="heatTreated" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                          Heat treated before sealing (above 80°C)
-                        </label>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">pH Level</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.processing.phLevel}
-                          onChange={(e) => handleInputChange('processing', 'phLevel', e.target.value)}
-                        >
-                          <option value="below_3_5">Very Acidic (below 3.5)</option>
-                          <option value="3_5_4_5">Acidic (3.5–4.5)</option>
-                          <option value="4_5_6_0">Mildly Acidic (4.5–6.0)</option>
-                          <option value="above_6_0">Near Neutral / Unacidified (above 6.0)</option>
-                          <option value="not_tested">Not tested / Unsure</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 4 && (
-                    <div className="space-y-6 animate-fade-in">
-                      <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 4: Packaging & Storage</h3>
-                      
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Packaging Type</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.packaging.packagingType}
-                          onChange={(e) => handleInputChange('packaging', 'packagingType', e.target.value)}
-                        >
-                          <option value="glass_jar">Glass Jar</option>
-                          <option value="plastic_pouch">Plastic Pouch</option>
-                          <option value="tin_can">Tin Can</option>
-                          <option value="pet_bottle">PET Bottle</option>
-                          <option value="paper_bag">Paper Bag</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
-                        <input 
-                          type="checkbox"
-                          id="isAirtight"
-                          checked={formData.packaging.isAirtight}
-                          onChange={(e) => handleInputChange('packaging', 'isAirtight', e.target.checked)}
-                          className="w-5 h-5 rounded accent-emerald-600"
-                        />
-                        <label htmlFor="isAirtight" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                          Is hermetically airtight sealed
-                        </label>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Sealed Storage Condition</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.packaging.sealedStorageCondition}
-                          onChange={(e) => handleInputChange('packaging', 'sealedStorageCondition', e.target.value)}
-                        >
-                          <option value="room_temp_dry">Room Temperature (Dry)</option>
-                          <option value="room_temp_humid">Room Temperature (Humid)</option>
-                          <option value="refrigerated">Refrigerated (below 8°C)</option>
-                          <option value="cold_store">Cold Store (0-4°C)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Storage After Opening</label>
-                        <select 
-                          className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
-                          value={formData.packaging.afterOpeningStorage}
-                          onChange={(e) => handleInputChange('packaging', 'afterOpeningStorage', e.target.value)}
-                        >
-                          <option value="refrigerated">Refrigerate</option>
-                          <option value="room_temp">Room Temperature</option>
-                          <option value="consume_immediately">Consume Immediately</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Wizard Navigation */}
-                  <div className="flex items-center justify-between mt-10 pt-6 border-t border-emerald-100 dark:border-slate-800/80">
-                    <button
-                      onClick={prevStep}
-                      disabled={currentStep === 1}
-                      className="btn-secondary disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      ← Back
-                    </button>
-
-                    {currentStep < 4 ? (
-                      <button onClick={nextStep} className="btn-primary">
-                        Next Step →
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={handleAnalyse} 
-                        disabled={loading || !formData.productIdentity.productId}
-                        className="btn-primary flex items-center justify-center space-x-2"
-                      >
-                        <span>{loading ? '🤖 Analysing...' : '🔬 Analyse Shelf Life'}</span>
-                      </button>
                     )}
-                  </div>
 
-                  {error && <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl font-medium animate-pulse">❌ {error}</div>}
+                    {currentStep === 2 && (
+                      <div className="space-y-6 animate-fade-in">
+                        <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 2: Sourcing & Ingredients</h3>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Primary Ingredient</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.sourcing.primaryIngredient}
+                            onChange={(e) => handleInputChange('sourcing', 'primaryIngredient', e.target.value)}
+                          >
+                            <option value="raw_mango">Raw Mango</option>
+                            <option value="wild_turmeric">Wild Turmeric</option>
+                            <option value="organic_ginger">Organic Ginger</option>
+                            <option value="apricot">Apricot</option>
+                            <option value="wild_berry">Wild Berry</option>
+                            <option value="himalayan_millet">Himalayan Millet</option>
+                            <option value="mustard">Mustard</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                            <span>Salt Percentage</span>
+                            <span className="text-emerald-600 font-bold">{formData.ingredients.saltPercent}%</span>
+                          </div>
+                          <input
+                            type="range" min="0" max="30" step="0.5"
+                            value={formData.ingredients.saltPercent}
+                            onChange={(e) => handleInputChange('ingredients', 'saltPercent', parseFloat(e.target.value))}
+                            className="w-full accent-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                            <span>Oil Percentage</span>
+                            <span className="text-emerald-600 font-bold">{formData.ingredients.oilPercent}%</span>
+                          </div>
+                          <input
+                            type="range" min="0" max="50" step="0.5"
+                            value={formData.ingredients.oilPercent}
+                            onChange={(e) => handleInputChange('ingredients', 'oilPercent', parseFloat(e.target.value))}
+                            className="w-full accent-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                            <span>Moisture Percentage</span>
+                            <span className="text-emerald-600 font-bold">{formData.ingredients.moisturePercent}%</span>
+                          </div>
+                          <input
+                            type="range" min="0" max="50" step="0.5"
+                            value={formData.ingredients.moisturePercent}
+                            onChange={(e) => handleInputChange('ingredients', 'moisturePercent', parseFloat(e.target.value))}
+                            className="w-full accent-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Water Activity (Aw)</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.ingredients.waterActivity}
+                            onChange={(e) => handleInputChange('ingredients', 'waterActivity', e.target.value)}
+                          >
+                            <option value="below_0_80">Low (below 0.80)</option>
+                            <option value="0_80_to_0_90">Medium (0.80–0.90)</option>
+                            <option value="above_0_90">High (above 0.90)</option>
+                            <option value="not_sure">Unsure / Not Measured</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStep === 3 && (
+                      <div className="space-y-6 animate-fade-in">
+                        <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 3: Processing Details</h3>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Processing Method</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.processing.method}
+                            onChange={(e) => handleInputChange('processing', 'method', e.target.value)}
+                          >
+                            <option value="raw">Raw (no heat treatment)</option>
+                            <option value="boiled">Boiled</option>
+                            <option value="fried">Fried</option>
+                            <option value="sun_dried">Sun Dried</option>
+                            <option value="cold_pressed">Cold Pressed</option>
+                            <option value="fermented">Fermented</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
+                          <input
+                            type="checkbox"
+                            id="heatTreated"
+                            checked={formData.processing.heatTreatedBeforeSealing}
+                            onChange={(e) => handleInputChange('processing', 'heatTreatedBeforeSealing', e.target.checked)}
+                            className="w-5 h-5 rounded accent-emerald-600"
+                          />
+                          <label htmlFor="heatTreated" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                            Heat treated before sealing (above 80°C)
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">pH Level</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.processing.phLevel}
+                            onChange={(e) => handleInputChange('processing', 'phLevel', e.target.value)}
+                          >
+                            <option value="below_3_5">Very Acidic (below 3.5)</option>
+                            <option value="3_5_4_5">Acidic (3.5–4.5)</option>
+                            <option value="4_5_6_0">Mildly Acidic (4.5–6.0)</option>
+                            <option value="above_6_0">Near Neutral / Unacidified (above 6.0)</option>
+                            <option value="not_tested">Not tested / Unsure</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentStep === 4 && (
+                      <div className="space-y-6 animate-fade-in">
+                        <h3 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-4">Step 4: Packaging & Storage</h3>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Packaging Type</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.packaging.packagingType}
+                            onChange={(e) => handleInputChange('packaging', 'packagingType', e.target.value)}
+                          >
+                            <option value="glass_jar">Glass Jar</option>
+                            <option value="plastic_pouch">Plastic Pouch</option>
+                            <option value="tin_can">Tin Can</option>
+                            <option value="pet_bottle">PET Bottle</option>
+                            <option value="paper_bag">Paper Bag</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/80">
+                          <input
+                            type="checkbox"
+                            id="isAirtight"
+                            checked={formData.packaging.isAirtight}
+                            onChange={(e) => handleInputChange('packaging', 'isAirtight', e.target.checked)}
+                            className="w-5 h-5 rounded accent-emerald-600"
+                          />
+                          <label htmlFor="isAirtight" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                            Is hermetically airtight sealed
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Sealed Storage Condition</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.packaging.sealedStorageCondition}
+                            onChange={(e) => handleInputChange('packaging', 'sealedStorageCondition', e.target.value)}
+                          >
+                            <option value="room_temp_dry">Room Temperature (Dry)</option>
+                            <option value="room_temp_humid">Room Temperature (Humid)</option>
+                            <option value="refrigerated">Refrigerated (below 8°C)</option>
+                            <option value="cold_store">Cold Store (0-4°C)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Storage After Opening</label>
+                          <select
+                            className="w-full p-3 border rounded-xl bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100"
+                            value={formData.packaging.afterOpeningStorage}
+                            onChange={(e) => handleInputChange('packaging', 'afterOpeningStorage', e.target.value)}
+                          >
+                            <option value="refrigerated">Refrigerate</option>
+                            <option value="room_temp">Room Temperature</option>
+                            <option value="consume_immediately">Consume Immediately</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Wizard Navigation */}
+                    <div className="flex items-center justify-between mt-10 pt-6 border-t border-emerald-100 dark:border-slate-800/80">
+                      <button
+                        onClick={prevStep}
+                        disabled={currentStep === 1}
+                        className="btn-secondary disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        ← Back
+                      </button>
+
+                      {currentStep < 4 ? (
+                        <button onClick={nextStep} className="btn-primary">
+                          Next Step →
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleAnalyse}
+                          disabled={loading || !formData.productIdentity.productId}
+                          className="btn-primary flex items-center justify-center space-x-2"
+                        >
+                          <span>{loading ? '🤖 Analysing...' : '🔬 Analyse Shelf Life'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {error && <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl font-medium animate-pulse">❌ {error}</div>}
                   </div>
                 </div>
               </>
@@ -921,8 +917,8 @@ export default function Dashboard() {
                   <p className="text-5xl mb-4 opacity-75">🔬</p>
                   <h3 className="font-heading font-bold text-xl text-slate-600 dark:text-slate-400 mb-2">No Analysis Run Yet</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                    {mode === 'quick' 
-                      ? 'Select a product and click Quick Analysis to get started.' 
+                    {mode === 'quick'
+                      ? 'Select a product and click Quick Analysis to get started.'
                       : 'Select a product and configure production metrics, then click Analyse Shelf Life to run AI analysis.'}
                   </p>
                 </div>
@@ -930,38 +926,6 @@ export default function Dashboard() {
             </div>
 
           </div>
-
-          {/* Optional Admin Panel */}
-          {isAdmin && (
-            <div className="mt-12 glass-panel p-8 max-w-3xl mx-auto border-t-4 border-t-emerald-600">
-              <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                <span>🛠️</span> Admin: Prefetch Manager
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                Pre-generate AI analysis for all products that don't have a cached result yet.
-              </p>
-              
-              <button
-                onClick={handleAdminPrefetchAll}
-                disabled={adminProcessing}
-                className="btn-primary bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl flex items-center space-x-2 disabled:opacity-50"
-              >
-                <span>🚀 Prefetch All Products</span>
-              </button>
-
-              {adminProcessing && (
-                <div className="mt-4 text-sm text-emerald-600 dark:text-emerald-400 animate-pulse font-medium">
-                  ⏳ Processing... please wait (running batch AI processing per product)
-                </div>
-              )}
-
-              {adminMessage && (
-                <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  {adminMessage}
-                </div>
-              )}
-            </div>
-          )}
 
         </div>
       </main>
