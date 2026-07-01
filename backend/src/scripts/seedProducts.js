@@ -24,6 +24,22 @@ async function seed() {
   await Product.deleteMany({});           // clear existing
   await Product.insertMany(products);
   console.log(`✅ ${products.length} products seeded in Atlas`);
+
+  const User = require('../models/User.model');
+  const bcrypt = require('bcryptjs');
+  await User.deleteMany({});
+  
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash('himshakti123', salt);
+
+  const users = [
+    { username: 'staff', hashedPassword, role: 'production_staff' },
+    { username: 'admin', hashedPassword, role: 'lab_admin' }
+  ];
+
+  await User.insertMany(users);
+  console.log(`✅ 2 users seeded in Atlas (password: himshakti123)`);
+
   process.exit(0);
 }
 

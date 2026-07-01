@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-
-const navLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'About', to: '/about' },
-  { label: 'Dashboard', to: '/dashboard' },
-  { label: 'Login', to: '/login' },
-]
+import { useAuth } from '../context/AuthContext'
 
 /**
  * Navbar — floating liquid glass top navigation bar with dark/light mode toggle.
@@ -16,7 +10,9 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
+  const { isAuthenticated, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
@@ -26,6 +22,28 @@ export default function Navbar() {
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
+  // Dynamic links based on authentication state
+  const getNavLinks = () => {
+    const links = [
+      { label: 'Home', to: '/' },
+      { label: 'About', to: '/about' },
+    ]
+    if (isAuthenticated) {
+      links.push({ label: 'Dashboard', to: '/dashboard' })
+      links.push({ label: 'Logout', isAction: true })
+    } else {
+      links.push({ label: 'Login', to: '/login' })
+    }
+    return links
+  }
+
+  const currentLinks = getNavLinks()
 
   return (
     <nav className="fixed w-full top-0 z-50 px-4 sm:px-8 pt-4 transition-all duration-500 pointer-events-none">
@@ -53,19 +71,29 @@ export default function Navbar() {
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-2 bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl border border-black/5 dark:border-white/10 backdrop-blur-md">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                id={`nav-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
-                to={link.to}
-                className={`px-6 py-2.5 rounded-xl font-heading text-sm font-bold transition-all duration-500 ${
-                  isActive(link.to)
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white dark:from-emerald-500 dark:to-neon dark:text-dark-950 shadow-md dark:shadow-glow'
-                    : 'text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
-                }`}
-              >
-                {link.label}
-              </Link>
+            {currentLinks.map((link) => (
+              link.isAction ? (
+                <button
+                  key={link.label}
+                  onClick={handleLogout}
+                  className="px-6 py-2.5 rounded-xl font-heading text-sm font-bold transition-all duration-500 text-slate-700 dark:text-slate-300 hover:text-pink-600 dark:hover:text-pinkGlow hover:bg-black/5 dark:hover:bg-white/10"
+                >
+                  {link.label}
+                </button>
+              ) : (
+                <Link
+                  key={link.to}
+                  id={`nav-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  to={link.to}
+                  className={`px-6 py-2.5 rounded-xl font-heading text-sm font-bold transition-all duration-500 ${
+                    isActive(link.to)
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white dark:from-emerald-500 dark:to-neon dark:text-dark-950 shadow-md dark:shadow-glow'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
 
             {/* Dark / Light toggle */}
@@ -134,19 +162,29 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden pb-4 pt-4 animate-slide-down" id="nav-mobile-menu">
             <div className="flex flex-col gap-2 p-4 bg-white/95 dark:bg-dark-900/90 backdrop-blur-[30px] rounded-2xl border border-black/5 dark:border-white/15 shadow-lg">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`px-5 py-3 rounded-xl font-heading text-sm font-bold transition-all ${
-                    isActive(link.to)
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white dark:from-emerald-500 dark:to-neon dark:text-dark-950 shadow-md'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10'
-                  }`}
-                >
-                  {link.label}
-                </Link>
+              {currentLinks.map((link) => (
+                link.isAction ? (
+                  <button
+                    key={link.label}
+                    onClick={() => { handleLogout(); setMenuOpen(false); }}
+                    className="px-5 py-3 rounded-xl font-heading text-sm font-bold transition-all text-left text-slate-700 dark:text-slate-300 hover:text-pink-600 dark:hover:text-pinkGlow hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`px-5 py-3 rounded-xl font-heading text-sm font-bold transition-all ${
+                      isActive(link.to)
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white dark:from-emerald-500 dark:to-neon dark:text-dark-950 shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )
               ))}
             </div>
           </div>

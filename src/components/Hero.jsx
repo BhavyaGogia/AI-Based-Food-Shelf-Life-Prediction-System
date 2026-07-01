@@ -28,7 +28,7 @@ export default function Hero() {
         }
       })
     }, { threshold: 0.1 })
-    
+
     if (heroRef.current) {
       const elements = heroRef.current.querySelectorAll('.reveal, .reveal-left, .reveal-right')
       elements.forEach(el => observer.observe(el))
@@ -45,11 +45,11 @@ export default function Hero() {
     <section
       id="hero"
       ref={heroRef}
-      className="relative min-h-screen overflow-hidden bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-white pt-36 pb-24 flex items-center justify-center transition-colors duration-500"
+      className="relative min-h-screen overflow-hidden bg-transparent text-slate-900 dark:text-white pt-36 pb-24 flex items-center justify-center transition-colors duration-500"
     >
       {/* Dynamic Aurora Background & Spotlight */}
       <div aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div 
+        <div
           className="absolute w-[800px] h-[800px] rounded-full aurora-bg opacity-30 transition-all duration-300 ease-out"
           style={{
             left: `${mousePos.x - 400}px`,
@@ -58,22 +58,38 @@ export default function Hero() {
         />
         <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-emerald-500/10 dark:bg-neon/10 blur-[150px] animate-blob-rotate" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-500/10 dark:bg-violet/10 blur-[150px] animate-blob-rotate" style={{ animationDelay: '5s' }} />
-        
+
         {/* Futuristic grid overlay */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wMykiLz48L3N2Zz4=')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-40" />
       </div>
 
       <div className="section-container relative z-10 w-full">
+        {/* Top Header: Badge */}
+        <div className="text-center lg:text-left mb-8 reveal-left">
+          <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-white/5 backdrop-blur-[30px] border border-emerald-500/20 dark:border-white/15 rounded-full px-6 py-2.5 text-xs sm:text-sm font-bold text-emerald-700 dark:text-neon shadow-sm dark:shadow-glow">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-neon animate-ping"></span>
+            <span className="tracking-widest uppercase">HimShakti Food Processing — Uttarakhand</span>
+          </div>
+        </div>
+
+        {/* Full width watercolor banner container - min-h pushes text down so you must scroll */}
+        <div className="w-full min-h-[60vh] lg:min-h-[70vh] flex items-center justify-center mb-16 relative">
+          <div className="w-full rounded-3xl overflow-hidden shadow-xl border border-emerald-500/20 dark:border-white/15 reveal relative group cursor-pointer transition-all duration-500 bg-[#fbf6f0] hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.6)] dark:hover:shadow-[0_0_50px_-10px_rgba(52,211,153,0.5)] hover:-translate-y-1">
+            
+            {/* -mt-[6%] crops the top white space and -mb-[1%] crops the bottom, while w-full h-auto guarantees the left/right woman and jars are NEVER cut! */}
+            <img src="/watercolor_banner.jpeg" alt="HimShakti Brand Story" className="w-full h-auto block -mt-[8%] md:-mt-[6%] -mb-[2%] md:-mb-[1%] group-hover:scale-[1.02] transition-transform duration-700" />
+            
+            {/* Blinking / Pulsing overlay effect on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:animate-pulse bg-emerald-500/10 mix-blend-overlay transition-opacity duration-500 pointer-events-none z-10"></div>
+            
+            <div className="absolute inset-0 rounded-3xl ring-2 ring-inset ring-transparent group-hover:ring-emerald-500 dark:group-hover:ring-neon transition-all duration-500 pointer-events-none z-20"></div>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-12">
-          
+
           {/* Left Text Content (55%) */}
           <div className="w-full lg:w-[55%] text-left">
-            {/* Premium Badge */}
-            <div className="reveal-left inline-flex items-center gap-3 bg-white/80 dark:bg-white/5 backdrop-blur-[30px] border border-emerald-500/20 dark:border-white/15 rounded-full px-6 py-2.5 mb-8 text-xs sm:text-sm font-bold text-emerald-700 dark:text-neon shadow-sm dark:shadow-glow">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-neon animate-ping"></span>
-              <span className="tracking-widest uppercase">HimShakti Food Processing — Uttarakhand</span>
-            </div>
-
             {/* Cinematic Headline */}
             <h1 className="reveal-left [transition-delay:100ms] font-heading font-extrabold text-5xl sm:text-7xl lg:text-8xl text-slate-900 dark:text-white leading-[1.05] mb-8 tracking-tight">
               Predict. <br className="hidden sm:inline" />
@@ -128,9 +144,9 @@ export default function Hero() {
           {/* Right Card Content (45%) — Floating Liquid Glass Dashboard Preview */}
           <div className="w-full lg:w-[45%] relative reveal-right [transition-delay:200ms]">
             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400 to-blue-500 dark:from-neon dark:to-violet blur-3xl opacity-20 animate-pulse-slow rounded-3xl" />
-            
+
             <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-white/80 dark:border-white/20 shadow-xl dark:shadow-glass-hover animate-float relative overflow-hidden group hover:border-emerald-500/50 dark:hover:border-neon/50 transition-colors duration-500">
-              
+
               {/* Glossy reflection sweep */}
               <div className="absolute -top-40 -left-40 w-80 h-80 bg-white/30 dark:bg-white/10 rounded-full blur-2xl group-hover:translate-x-96 group-hover:translate-y-96 transition-transform duration-1000 pointer-events-none" />
 
@@ -189,10 +205,10 @@ export default function Hero() {
               <Link to="/dashboard" className="group flex items-center justify-center w-full py-4 bg-emerald-600 text-white dark:bg-white/10 dark:text-white border border-transparent dark:border-white/15 hover:bg-emerald-700 dark:hover:bg-neon dark:hover:text-dark-950 rounded-2xl font-heading font-bold text-base transition-all duration-500 shadow-md dark:shadow-glow">
                 Open Dashboard <span className="ml-2 group-hover:translate-x-2 transition-transform">→</span>
               </Link>
-              
+
             </div>
           </div>
-          
+
         </div>
       </div>
     </section>

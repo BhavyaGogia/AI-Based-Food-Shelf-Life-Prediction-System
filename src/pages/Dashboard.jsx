@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext'
 import ResultCard from '../components/ResultCard'
 import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll } from '../api/shelfLife'
 import StarfieldCanvas from '../components/StarfieldCanvas'
+import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
   const { theme, toggleTheme } = useTheme()
@@ -89,8 +90,8 @@ export default function Dashboard() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  // Check if URL has admin=true
-  const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+  const { role, logout } = useAuth();
+  const isAdmin = role === 'lab_admin';
 
   // Fetch products and calculate initial stats
   const fetchProductsAndStats = () => {
@@ -373,12 +374,17 @@ export default function Dashboard() {
             <span className="text-xl">ℹ️</span> About
           </Link>
         </nav>
-        <div className="p-6 m-4 mt-auto bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-2xl flex items-center gap-4 border border-black/5 dark:border-white/10">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 dark:from-neon dark:to-violet flex items-center justify-center text-white dark:text-dark-950 font-extrabold text-base shadow-sm dark:shadow-glow">HS</div>
-          <div className="text-sm">
-            <p className="font-bold text-slate-900 dark:text-white">Staff Portal</p>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">AI Production</p>
+        <div className="p-6 m-4 mt-auto bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-2xl flex flex-col gap-4 border border-black/5 dark:border-white/10">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 dark:from-neon dark:to-violet flex items-center justify-center text-white dark:text-dark-950 font-extrabold text-base shadow-sm dark:shadow-glow">HS</div>
+            <div className="text-sm">
+              <p className="font-bold text-slate-900 dark:text-white">{isAdmin ? 'Admin Portal' : 'Staff Portal'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">{isAdmin ? 'Full Access' : 'AI Production'}</p>
+            </div>
           </div>
+          <button onClick={logout} className="w-full py-2 px-4 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-semibold text-sm rounded-xl transition-colors text-center border border-rose-100 dark:border-rose-900/30">
+            Sign Out
+          </button>
         </div>
       </aside>
 
@@ -399,90 +405,95 @@ export default function Dashboard() {
         </header>
 
         <div className="p-8 max-w-7xl mx-auto w-full">
-          {/* Dynamic Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              { icon: '📦', label: 'Analyses Run', value: stats.analysesRun, color: 'text-emerald-600 dark:text-neon' },
-              { icon: '🌾', label: 'Products Tracked', value: stats.productsTracked, color: 'text-emerald-600 dark:text-emerald-400' },
-              { icon: '✅', label: 'Safe Batches', value: stats.safeBatches, color: 'text-teal-600 dark:text-teal-300' },
-              { icon: '⚠️', label: 'Risk Warnings', value: stats.riskWarnings, color: 'text-rose-600 dark:text-pinkGlow' },
-            ].map((stat, i) => (
-              <div key={stat.label} className="glass-card p-6 reveal hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
-                  {stat.icon}
-                </div>
-                <p className={`font-heading font-extrabold text-4xl mb-2 ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800">
-              <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Shelf Life Trends</h3>
-              <div className="h-48 w-full border-b-2 border-l-2 border-slate-200 dark:border-slate-800 relative flex items-end justify-between pt-4 px-4 pb-0">
-                {[40, 70, 45, 90, 65, 80].map((h, i) => (
-                  <div key={i} className="w-10 sm:w-12 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t-xl hover:opacity-80 transition-all cursor-pointer hover:-translate-y-2" style={{ height: `${h}%` }}></div>
+          
+          {isAdmin && (
+            <>
+              {/* Dynamic Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {[
+                  { icon: '📦', label: 'Analyses Run', value: stats.analysesRun, color: 'text-emerald-600 dark:text-neon' },
+                  { icon: '🌾', label: 'Products Tracked', value: stats.productsTracked, color: 'text-emerald-600 dark:text-emerald-400' },
+                  { icon: '✅', label: 'Safe Batches', value: stats.safeBatches, color: 'text-teal-600 dark:text-teal-300' },
+                  { icon: '⚠️', label: 'Risk Warnings', value: stats.riskWarnings, color: 'text-rose-600 dark:text-pinkGlow' },
+                ].map((stat, i) => (
+                  <div key={stat.label} className="glass-card p-6 reveal hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
+                    <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                      {stat.icon}
+                    </div>
+                    <p className={`font-heading font-extrabold text-4xl mb-2 ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                  </div>
                 ))}
               </div>
-            </div>
-            <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800" style={{ transitionDelay: '100ms' }}>
-              <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Risk Distribution</h3>
-              <div className="h-48 w-full flex items-center justify-center">
-                <div className="w-36 h-36 rounded-full border-[14px] border-emerald-500 border-r-amber-400 border-t-emerald-500 border-l-emerald-500 relative animate-blob-rotate shadow-lg">
-                  <div className="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-slate-900 dark:text-slate-200">AI</div>
+
+              {/* Charts Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800">
+                  <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Shelf Life Trends</h3>
+                  <div className="h-48 w-full border-b-2 border-l-2 border-slate-200 dark:border-slate-800 relative flex items-end justify-between pt-4 px-4 pb-0">
+                    {[40, 70, 45, 90, 65, 80].map((h, i) => (
+                      <div key={i} className="w-10 sm:w-12 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t-xl hover:opacity-80 transition-all cursor-pointer hover:-translate-y-2" style={{ height: `${h}%` }}></div>
+                    ))}
+                  </div>
+                </div>
+                <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800" style={{ transitionDelay: '100ms' }}>
+                  <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Risk Distribution</h3>
+                  <div className="h-48 w-full flex items-center justify-center">
+                    <div className="w-36 h-36 rounded-full border-[14px] border-emerald-500 border-r-amber-400 border-t-emerald-500 border-l-emerald-500 relative animate-blob-rotate shadow-lg">
+                      <div className="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-slate-900 dark:text-slate-200">AI</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Recent Predictions Table */}
-          <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
-            <div className="p-8 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Recent Predictions</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
-                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
-                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">SKU</th>
-                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Category</th>
-                    <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.slice(0, 5).map((p, i) => {
-                    let status = 'Fresh';
-                    let statusPill = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-                    if (p.riskLevel === 'HIGH') {
-                      status = 'Expired';
-                      statusPill = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800';
-                    } else if (p.predictedShelfLifeDays && p.predictedShelfLifeDays < 30) {
-                      status = 'Expiring';
-                      statusPill = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-                    }
-                    return (
-                      <tr key={p._id} className="reveal border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors" style={{ transitionDelay: `${i * 100}ms` }}>
-                        <td className="py-5 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
-                        <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
-                        <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.category}</td>
-                        <td className="py-5 px-8">
-                          <span className={`px-4 py-1.5 text-xs font-bold rounded-full border shadow-sm ${statusPill}`}>{status}</span>
-                        </td>
+              {/* Recent Predictions Table */}
+              <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
+                <div className="p-8 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Recent Predictions</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
+                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
+                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">SKU</th>
+                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Category</th>
+                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Status</th>
                       </tr>
-                    );
-                  })}
-                  {products.length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="py-8 text-center text-slate-500">No predictions run yet.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    </thead>
+                    <tbody>
+                      {products.slice(0, 5).map((p, i) => {
+                        let status = 'Fresh';
+                        let statusPill = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+                        if (p.riskLevel === 'HIGH') {
+                          status = 'Expired';
+                          statusPill = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800';
+                        } else if (p.predictedShelfLifeDays && p.predictedShelfLifeDays < 30) {
+                          status = 'Expiring';
+                          statusPill = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+                        }
+                        return (
+                          <tr key={p._id} className="reveal border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors" style={{ transitionDelay: `${i * 100}ms` }}>
+                            <td className="py-5 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
+                            <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
+                            <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.category}</td>
+                            <td className="py-5 px-8">
+                              <span className={`px-4 py-1.5 text-xs font-bold rounded-full border shadow-sm ${statusPill}`}>{status}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {products.length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="py-8 text-center text-slate-500">No predictions run yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
 
 
 

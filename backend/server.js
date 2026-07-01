@@ -9,6 +9,7 @@ const { shelfLifeLimiter } = require('./src/middleware/rateLimiter');
 
 const productRoutes = require('./src/routes/products.routes');
 const shelfLifeRoutes = require('./src/routes/shelfLife.routes');
+const authRoutes = require('./src/routes/auth.routes');
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.get('/api/stats', async (req, res, next) => {
 
 app.use('/api/products', productRoutes);
 app.use('/api/shelf-life', shelfLifeLimiter, shelfLifeRoutes);
+app.use('/api/auth', authRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {

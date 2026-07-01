@@ -55,8 +55,17 @@ export default function About() {
             <section className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20" aria-labelledby="about-company">
               <div className="w-full lg:w-1/2 reveal-left">
                 <div className="relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-xl dark:shadow-glass-hover group border border-slate-200 dark:border-white/15 bg-white dark:bg-gradient-to-br dark:from-dark-900 dark:via-dark-850 dark:to-dark-900">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-8xl group-hover:scale-110 group-hover:rotate-[5deg] transition-all duration-500 filter drop-shadow-lg">🏢</span>
+                  <div className="absolute inset-0">
+                    <img src="/himshakti_artisan.png" alt="HimShakti Artisan in Uttarakhand" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
+                    {/* Floating Badge */}
+                    <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-3 rounded-xl shadow-xl border border-white/20 dark:border-slate-700/50 flex items-center gap-3 group-hover:-translate-y-2 transition-transform duration-500">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Origin</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Made in Uttarakhand</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="absolute inset-0 border-2 border-emerald-500/30 dark:border-neon/30 rounded-3xl z-10 pointer-events-none"></div>
                 </div>
@@ -77,8 +86,23 @@ export default function About() {
             <section className="flex flex-col lg:flex-row-reverse items-center gap-16 lg:gap-20" aria-labelledby="about-problem">
               <div className="w-full lg:w-1/2 reveal-right">
                 <div className="relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-xl dark:shadow-glass-hover group border border-slate-200 dark:border-white/15 bg-white dark:bg-gradient-to-br dark:from-dark-900 dark:via-dark-850 dark:to-dark-900">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-8xl group-hover:scale-110 group-hover:-rotate-[5deg] transition-all duration-500 filter drop-shadow-lg">❗</span>
+                  <div className="absolute inset-0">
+                    <img src="/food_waste_problem.png" alt="Food quality inspector" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-rose-900/90 via-rose-900/20 to-transparent mix-blend-multiply"></div>
+                    
+                    {/* Floating Error Card */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-5 shadow-2xl border border-rose-200 dark:border-rose-900/50 group-hover:scale-105 transition-transform duration-500">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center text-rose-600 flex-shrink-0 animate-pulse">
+                          ⚠️
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-rose-500 uppercase mb-1">Critical Alert — Day 60</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Manual Expiry Guess Failed</p>
+                          <p className="text-xs font-medium text-slate-600 dark:text-slate-400">Batch recalled. Estimated ₹18,000 revenue lost.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div className="absolute inset-0 border-2 border-rose-500/30 dark:border-pinkGlow/30 rounded-3xl z-10 pointer-events-none"></div>
                 </div>
@@ -105,8 +129,48 @@ export default function About() {
             <section className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20" aria-labelledby="about-solution">
               <div className="w-full lg:w-1/2 reveal-left">
                 <div className="relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-xl dark:shadow-glass-hover group border border-slate-200 dark:border-white/15 bg-white dark:bg-gradient-to-br dark:from-dark-900 dark:via-dark-850 dark:to-dark-900">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-8xl group-hover:scale-110 group-hover:rotate-[5deg] transition-all duration-500 filter drop-shadow-lg">🤖</span>
+                  <div className="absolute inset-0 p-8 flex flex-col items-center justify-center bg-slate-50 dark:bg-dark-950 gap-6">
+                    
+                    {/* Before (Manual) */}
+                    <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm group-hover:-translate-y-1 transition-transform duration-500">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Manual Approach</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-heading font-bold text-slate-800 dark:text-slate-200">60 days</span>
+                        <span className="text-sm font-medium text-rose-500 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded text-nowrap">± 14 days error</span>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 z-10">
+                      <svg className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </div>
+
+                    {/* After (AI Predicted) */}
+                    <div className="w-full max-w-sm bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 p-5 shadow-md relative overflow-hidden group-hover:translate-y-1 transition-transform duration-500">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 dark:bg-neon/10 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                      
+                      <div className="flex items-center justify-between mb-3 relative z-10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">AI Predicted</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-1 rounded-full">Risk: LOW</span>
+                      </div>
+                      
+                      <div className="flex items-end justify-between relative z-10">
+                        <span className="text-4xl font-heading font-extrabold text-emerald-800 dark:text-neon">54 <span className="text-lg font-bold text-emerald-600 dark:text-emerald-500">days</span></span>
+                        <div className="text-right">
+                          <p className="text-[10px] font-semibold text-emerald-600/70 dark:text-emerald-400/70 uppercase">Confidence</p>
+                          <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">96%</p>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                   <div className="absolute inset-0 border-2 border-blue-500/30 dark:border-violet/30 rounded-3xl z-10 pointer-events-none"></div>
                 </div>
