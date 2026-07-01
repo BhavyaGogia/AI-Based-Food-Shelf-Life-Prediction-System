@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Card from '../components/Card'
 import Footer from '../components/Footer'
+import StarfieldCanvas from '../components/StarfieldCanvas'
 
 const featureCards = [
   {
@@ -79,17 +80,18 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
+    <div className="min-h-screen flex flex-col bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
+      <StarfieldCanvas />
       <Navbar />
 
-      <main className="flex-grow" ref={mainRef}>
+      <main className="flex-grow relative z-10" ref={mainRef}>
         {/* Hero Section */}
         <Hero />
 
         {/* Features Section — Bento Grid Style */}
         <section id="features" className="py-32 relative overflow-hidden">
           {/* Background Ambient Lighting */}
-          <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-neon/10 blur-[150px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/3 left-0 w-[500px] h-[500px] bg-emerald-500/5 dark:bg-neon/5 blur-[150px] rounded-full pointer-events-none" />
           
           <div className="section-container relative z-10">
             <div className="text-center mb-24 reveal">
@@ -110,9 +112,9 @@ export default function Home() {
         </section>
 
         {/* Products Section */}
-        <section id="products" className="py-32 relative overflow-hidden bg-slate-100/80 dark:bg-dark-900/50 border-y border-slate-200 dark:border-white/10 transition-colors duration-500">
+        <section id="products" className="py-32 relative overflow-hidden bg-slate-100/40 dark:bg-dark-900/20 border-y border-slate-200/50 dark:border-white/5 transition-colors duration-500">
           {/* Background Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 dark:bg-violet/10 blur-[150px] rounded-full pointer-events-none animate-pulse-slow"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 dark:bg-violet/5 blur-[150px] rounded-full pointer-events-none animate-pulse-slow"></div>
           
           <div className="section-container relative z-10">
             <div className="text-center mb-24 reveal">
@@ -132,8 +134,8 @@ export default function Home() {
         </section>
 
         {/* New Stats Section — Cinematic Counter Grid */}
-        <section id="stats" className="py-28 bg-white dark:bg-gradient-to-r dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 text-slate-900 dark:text-white relative overflow-hidden border-b border-slate-200 dark:border-white/10 transition-colors duration-500">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wMykiLz48L3N2Zz4=')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-30" />
+        <section id="stats" className="py-28 bg-white/30 dark:bg-transparent text-slate-900 dark:text-white relative overflow-hidden border-b border-slate-200/50 dark:border-white/5 transition-colors duration-500">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wMikiLz48L3N2Zz4=')] dark:bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMikiLz48L3N2Zz4=')] opacity-30" />
           <div className="section-container relative z-10">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
               {[
@@ -142,7 +144,7 @@ export default function Home() {
                 { value: '98%', label: 'Prediction Accuracy' },
                 { value: '12 months', label: 'Max Shelf Life Tracked' },
               ].map((stat, i) => (
-                <div key={stat.label} className="reveal p-6 glass-panel border border-slate-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500 shadow-sm dark:shadow-none" style={{ transitionDelay: `${i * 120}ms` }}>
+                <div key={stat.label} className="reveal p-6 glass-panel border border-slate-200/50 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500 shadow-sm dark:shadow-none" style={{ transitionDelay: `${i * 120}ms` }}>
                   <p className="font-heading font-extrabold text-5xl sm:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-700 to-teal-600 dark:from-white dark:via-neon dark:to-emerald-400 mb-4 drop-shadow-sm">{stat.value}</p>
                   <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-widest">{stat.label}</p>
                 </div>
@@ -154,11 +156,11 @@ export default function Home() {
         {/* CTA Banner — Liquid Glass Glow Sweep */}
         <section id="cta-banner" className="py-32 relative overflow-hidden">
           <div className="section-container">
-            <div className="glass-panel relative overflow-hidden p-16 sm:p-20 text-center rounded-3xl reveal border border-slate-200 dark:border-white/20 shadow-xl dark:shadow-glass-hover bg-white/90 dark:bg-gradient-to-br dark:from-dark-900/90 dark:via-dark-850/90 dark:to-dark-900/90">
+            <div className="glass-panel relative overflow-hidden p-16 sm:p-20 text-center rounded-3xl reveal border border-slate-200/50 dark:border-white/10 shadow-xl dark:shadow-glass-hover bg-white/70 dark:bg-gradient-to-br dark:from-dark-900/70 dark:via-dark-850/70 dark:to-dark-900/70">
               
               {/* Glow Blobs */}
-              <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-neon/20 blur-3xl pointer-events-none"></div>
-              <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-blue-500/10 dark:bg-violet/20 blur-3xl pointer-events-none"></div>
+              <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-neon/10 blur-3xl pointer-events-none"></div>
+              <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-blue-500/10 dark:bg-violet/10 blur-3xl pointer-events-none"></div>
               
               <div className="relative z-10 max-w-3xl mx-auto">
                 <h2 className="font-heading font-extrabold text-4xl sm:text-6xl text-slate-900 dark:text-white mb-8 tracking-tight">
@@ -185,3 +187,4 @@ export default function Home() {
     </div>
   )
 }
+

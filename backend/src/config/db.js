@@ -3,15 +3,17 @@ const mongoose = require('mongoose');
 async function connectDB() {
   try {
     if (!process.env.MONGODB_URI) {
-      console.warn('⚠️ No MONGODB_URI provided. Running in mock mode.');
-      return;
+      console.error('❌ CRITICAL ERROR: No MONGODB_URI provided in environment variables. Terminating backend.');
+      process.exit(1);
     }
     await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 2000 // fail fast if no DB
+      serverSelectionTimeoutMS: 5000, // fail fast if no DB
+      family: 4 // Force IPv4 to fix SRV resolution issues on some Windows machines
     });
     console.log('✅ Connected to MongoDB Atlas — himshakti DB');
   } catch (err) {
-    console.error('❌ MongoDB connection failed. Running in mock mode. Error:', err.message);
+    console.error('❌ CRITICAL ERROR: MongoDB connection failed. Terminating backend. Error:', err.message);
+    process.exit(1);
   }
 }
 

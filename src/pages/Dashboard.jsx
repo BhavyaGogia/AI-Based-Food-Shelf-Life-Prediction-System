@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import ResultCard from '../components/ResultCard'
 import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll } from '../api/shelfLife'
+import StarfieldCanvas from '../components/StarfieldCanvas'
 
 export default function Dashboard() {
   const { theme, toggleTheme } = useTheme()
@@ -12,8 +13,7 @@ export default function Dashboard() {
   const [productsLoading, setProductsLoading] = useState(true)
   const [productsError, setProductsError] = useState(null)
   
-  // Option C: Dual Mode State ('quick' | 'deep')
-  const [mode, setMode] = useState('quick')
+  const [mode, setMode] = useState('deep')
   const [currentStep, setCurrentStep] = useState(1)
   
   // Prefetch cache state for Quick View
@@ -295,8 +295,7 @@ export default function Dashboard() {
         setPrefetchResult(data.data);
         setLastAnalysedDate(new Date().toISOString());
 
-        // Auto switch back to Quick View mode to show result
-        setMode('quick');
+        // Do not auto switch mode here, let the user stay in their current mode
       } else {
         throw new Error(data.error || 'Analysis failed');
       }
@@ -347,10 +346,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body" ref={dashboardRef}>
+    <div className="min-h-screen flex bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body" ref={dashboardRef}>
+      <StarfieldCanvas />
       
       {/* Sticky Sidebar */}
-      <aside className="w-[260px] hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white/80 dark:bg-dark-900/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/10 shadow-sm dark:shadow-glass z-40">
+      <aside className="w-[260px] hidden lg:flex flex-col fixed inset-y-0 left-0 bg-white/40 dark:bg-dark-900/40 backdrop-blur-xl border-r border-slate-200 dark:border-white/10 shadow-sm dark:shadow-glass z-40">
         <div className="p-8">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/15 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform">
@@ -386,7 +386,7 @@ export default function Dashboard() {
       <main className="flex-grow flex flex-col lg:ml-[260px] min-w-0">
         
         {/* Sticky Blurred Topbar */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-dark-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-8 py-6 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-white/40 dark:bg-dark-950/40 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 px-8 py-6 flex items-center justify-between">
           <h1 className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white tracking-tight">Analysis Dashboard</h1>
           <div className="flex items-center gap-4">
             <button
@@ -484,40 +484,45 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Mode Toggle Tabs Pills */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-full flex space-x-1 border border-white/10">
-              <button
-                onClick={() => setMode('quick')}
-                className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                  mode === 'quick'
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                }`}
-              >
-                <span>⚡ Quick View</span>
-              </button>
-              <button
-                onClick={() => setMode('deep')}
-                className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
-                  mode === 'deep'
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                }`}
-              >
-                <span>🔬 Deep Analysis</span>
-              </button>
-            </div>
-          </div>
+
+
+
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Quick View Mode Layout */}
+
+            {/* Quick Analysis Mode Layout */}
             {mode === 'quick' && (
-              <div className="lg:col-span-12 space-y-8 animate-fade-in">
-                <div className="glass-panel p-8 max-w-2xl mx-auto">
-                  <h3 className="font-heading font-bold text-xl text-emerald-800 dark:text-emerald-400 mb-6 flex items-center gap-2">
-                    <span>⚡</span> Instant Cached Prediction
+              <div className="lg:col-span-7 space-y-8 animate-fade-in">
+                
+                {/* Mode Toggle Tabs Pills */}
+                <div className="flex justify-start mb-2">
+                  <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-full flex space-x-1 border border-white/10 shadow-sm">
+                    <button
+                      onClick={() => setMode('quick')}
+                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
+                        mode === 'quick'
+                          ? 'bg-emerald-600 text-white shadow-md'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                      }`}
+                    >
+                      <span>⚡ Quick Analysis</span>
+                    </button>
+                    <button
+                      onClick={() => setMode('deep')}
+                      className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
+                        mode === 'deep'
+                          ? 'bg-emerald-600 text-white shadow-md'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                      }`}
+                    >
+                      <span>🔬 Deep Analysis</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="glass-panel p-8">
+                  <h3 className="font-heading font-bold text-2xl text-emerald-800 dark:text-emerald-400 mb-6 flex items-center gap-2">
+                    <span>⚡</span> Quick AI Analysis
                   </h3>
 
                   <div className="mb-6">
@@ -535,64 +540,24 @@ export default function Dashboard() {
                         <option value="">-- Choose a product --</option>
                         {products.map(p => (
                           <option key={p._id} value={p._id}>
-                            {p.lastAnalysisResult ? '⚡ ' : ''}{p.productName} ({p.sku})
+                            {p.productName} ({p.sku})
                           </option>
                         ))}
                       </select>
                     )}
                   </div>
-
-                  {/* Cache State Router */}
-                  {formData.productIdentity.productId && (
-                    <div className="mt-6 border-t border-slate-100 dark:border-slate-800/80 pt-6">
-                      {prefetchLoading ? (
-                        <div className="flex flex-col items-center justify-center py-12">
-                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500 mb-3"></div>
-                          <span className="text-sm text-slate-500">Retrieving cached food science analysis...</span>
-                        </div>
-                      ) : prefetchResult ? (
-                        <div className="space-y-6">
-                          {/* Cache Info Badge */}
-                          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-400 rounded-full text-xs font-bold border border-emerald-100/50 dark:border-emerald-900/50">
-                            <span>⚡ Cached result</span>
-                            <span className="text-emerald-300">•</span>
-                            <span>Last analysed: {formatDate(lastAnalysedDate)}</span>
-                          </div>
-
-                          <ResultCard result={prefetchResult} />
-
-                          <div className="text-center mt-6">
-                            <button
-                              onClick={() => setMode('deep')}
-                              className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 underline flex items-center justify-center gap-1 mx-auto"
-                            >
-                              🔄 Re-run Fresh Analysis
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="glass-card p-8 text-center border-dashed border-2 border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center">
-                          <p className="text-4xl mb-3">🔬</p>
-                          <h4 className="font-heading font-bold text-lg text-slate-700 dark:text-slate-300 mb-1">No quick result yet for this product.</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-xs leading-relaxed">
-                            Run a full Deep Analysis once to enable instant Quick View for this product.
-                          </p>
-                          <button
-                            onClick={() => setMode('deep')}
-                            className="btn-primary py-2 px-4 text-xs"
-                          >
-                            Switch to Deep Analysis →
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {!formData.productIdentity.productId && (
-                    <div className="text-center py-10 text-slate-400 font-medium">
-                      Select a product from the list above to view its cached shelf life status instantly.
-                    </div>
-                  )}
+                  
+                  <div className="mt-8 text-center">
+                    <button 
+                      onClick={handleAnalyse} 
+                      disabled={loading || !formData.productIdentity.productId}
+                      className="btn-primary flex items-center justify-center space-x-2 w-full py-4 rounded-xl text-lg font-bold shadow-lg"
+                    >
+                      <span>{loading ? '🤖 Analysing...' : '⚡ Run Quick Analysis'}</span>
+                    </button>
+                  </div>
+                  
+                  {error && <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl font-medium animate-pulse">❌ {error}</div>}
                 </div>
               </div>
             )}
@@ -601,13 +566,41 @@ export default function Dashboard() {
             {mode === 'deep' && (
               <>
                 {/* Form Wizard */}
-                <div className="lg:col-span-7 glass-panel p-8 animate-fade-in">
-                  <div className="flex items-center justify-between mb-8 border-b border-emerald-100 dark:border-slate-800 pb-4">
-                    <h2 className="font-heading font-bold text-2xl text-emerald-800 dark:text-emerald-400">Configure Parameters</h2>
-                    <span className="text-xs font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-full">
-                      Step {currentStep} of 4
-                    </span>
+                <div className="lg:col-span-7 space-y-8 animate-fade-in">
+
+                  {/* Mode Toggle Tabs Pills */}
+                  <div className="flex justify-start mb-2">
+                    <div className="bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-full flex space-x-1 border border-white/10 shadow-sm">
+                      <button
+                        onClick={() => setMode('quick')}
+                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
+                          mode === 'quick'
+                            ? 'bg-emerald-600 text-white shadow-md'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                        }`}
+                      >
+                        <span>⚡ Quick Analysis</span>
+                      </button>
+                      <button
+                        onClick={() => setMode('deep')}
+                        className={`px-6 py-2.5 rounded-full font-heading font-bold text-sm transition-all duration-300 flex items-center space-x-2 ${
+                          mode === 'deep'
+                            ? 'bg-emerald-600 text-white shadow-md'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                        }`}
+                      >
+                        <span>🔬 Deep Analysis</span>
+                      </button>
+                    </div>
                   </div>
+
+                  <div className="glass-panel p-8">
+                    <div className="flex items-center justify-between mb-8 border-b border-emerald-100 dark:border-slate-800 pb-4">
+                      <h2 className="font-heading font-bold text-2xl text-emerald-800 dark:text-emerald-400">Configure Parameters</h2>
+                      <span className="text-xs font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-full">
+                        Step {currentStep} of 4
+                      </span>
+                    </div>
 
                   {/* Progress Bar */}
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
@@ -903,24 +896,28 @@ export default function Dashboard() {
                   </div>
 
                   {error && <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50 rounded-xl font-medium animate-pulse">❌ {error}</div>}
-                </div>
-
-                {/* Results Display Area */}
-                <div className="lg:col-span-5">
-                  {result ? (
-                    <ResultCard result={result} />
-                  ) : (
-                    <div className="glass-card p-12 text-center border-dashed border-2 border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center min-h-[300px]">
-                      <p className="text-5xl mb-4 opacity-75">🔬</p>
-                      <h3 className="font-heading font-bold text-xl text-slate-600 dark:text-slate-400 mb-2">No Analysis Run Yet</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                        Select a product and configure production metrics, then click <strong>Analyse Shelf Life</strong> to run AI analysis.
-                      </p>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </>
             )}
+
+            {/* Results Display Area (Shared across both modes) */}
+            <div className="lg:col-span-5">
+              {result ? (
+                <ResultCard result={result} />
+              ) : (
+                <div className="glass-card p-12 text-center border-dashed border-2 border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center min-h-[300px]">
+                  <p className="text-5xl mb-4 opacity-75">🔬</p>
+                  <h3 className="font-heading font-bold text-xl text-slate-600 dark:text-slate-400 mb-2">No Analysis Run Yet</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
+                    {mode === 'quick' 
+                      ? 'Select a product and click Quick Analysis to get started.' 
+                      : 'Select a product and configure production metrics, then click Analyse Shelf Life to run AI analysis.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* Optional Admin Panel */}

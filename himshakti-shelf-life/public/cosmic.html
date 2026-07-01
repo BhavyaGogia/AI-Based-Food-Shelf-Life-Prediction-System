@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Dust</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.143.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.143.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
+    import { CopyShader } from 'three/addons/shaders/CopyShader.js';
+
+    // 1. PALETTES & CONFIG
+    const PALETTES = {
+      dark: {
+        bgColor: '#150803',
+        flameColor: '#e05e1b',
+        flameColor2: '#d4a348',
+        flameAmt: 0.18,
+        coolColor: '#a63414',
+        warmColor: '#dca150',
+        alpha: 0.68
+      },
+      light: {
+        bgColor: '#fcfbf7',
+        flameColor: '#fed7aa',
+        flameColor2: '#fef08a',
+        flameAmt: 0.25,
+        coolColor: '#7c2d12',
+        warmColor: '#9a3412',
+        alpha: 0.55
+      }
+    };
+
+    const CONFIG = {
+      pointCount: 940,
+      fieldDepth: 3.7,
+      driftSpeed: 0.4
+    };
+
+    const LAYERS = {
+      NONE: 0,
+      TORUS_SCENE: 1,
+      BLOOM_SCENE: 2,
+      ENTIRE_SCENE: 3
+    };
+
+    function hexToVec3(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      return new THREE.Vector3(
+        ((n >> 16) & 255) / 255,
+        ((n >> 8) & 255) / 255,
+        (n & 255) / 255
+      );
+    }
+
+    // Determine initial theme mode
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentMode = urlParams.get('mode') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (!PALETTES[currentMode]) currentMode = 'dark';
+
+    // State for smooth transition
+    const activePalette = {
+      bgColor: hexToVec3(PALETTES[currentMode].bgColor),
+      flameColor: hexToVec3(PALETTES[currentMode].flameColor),
+      flameColor2: hexToVec3(PALETTES[currentMode].flameColor2),
+      flameAmt: PALETTES[currentMode].flameAmt,
+      coolColor: hexToVec3(PALETTES[currentMode].coolColor),
+      warmColor: hexToVec3(PALETTES[currentMode].warmColor),
+      alpha: PALETTES[currentMode].alpha
+    };
+
+    // 2. Boilerplate Setup
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGL1Renderer({ canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.VSMShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = new THREE.Fog(0x000000, 0, 22);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 80);
+    camera.position.set(0, 0, 3);
+    camera.layers.enable(LAYERS.TORUS_SCENE);
+    camera.layers.enable(LAYERS.BLOOM_SCENE);
+    camera.layers.enable(LAYERS.ENTIRE_SCENE);
+    scene.add(camera);
+
+    // 3. Geometry
+    const count = CONFIG.pointCount;
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const sizes = [];
+
+    for (let i = 0; i < count; i++) {
+      positions.push(
+        2 * Math.random() - 1,
+        2 * Math.random() - 1,
+        2 * Math.random() - 1
+      );
+      sizes.push(25 + 25 * Math.random());
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+    // 4. Material & Shaders
+    const uniforms = {
+      iTime: { value: 0 },
+      iShift: { value: new THREE.Vector3() },
+      iAlpha: { value: 0 },
+      iAnimation: { value: new THREE.Vector3(0, 0, 0) },
+      iResolution: { value: { x: window.innerWidth * window.devicePixelRatio, y: window.innerHeight * window.devicePixelRatio } },
+      uDepth: { value: CONFIG.fieldDepth },
+      uCool: { value: activePalette.coolColor },
+      uWarm: { value: activePalette.warmColor }
+    };
+
+    const vertexShader = `
+      attribute float size;
+      uniform float iTime;
+      uniform vec3 iShift;
+      uniform vec2 iResolution;
+      uniform vec3 iAnimation;
+      uniform float uDepth;
+      varying float transparency;
+      varying float warmness;
+
+      vec3 warp3d(vec3 pos, float t) {
+        float curv = 0.9, a = 1.9, b = 0.25, b2 = 0.03, c = 0.02;
+        pos *= 2.;
+        pos.x += curv * sin(c * t + a * pos.y) + t * b2;
+        pos.y += curv * cos(c * t + a * pos.x);
+        pos.z += curv * cos(c * t + a * pos.y);
+        pos.z += curv * sin(c * t + a * pos.x) + t * b;
+        pos.z = abs(pos.z);
+        return pos.xyz;
+      }
+
+      void main() {
+        vec3 v = warp3d(position, iTime);
+        v = uDepth * (2. * fract(v + iShift) - 1.) + iAnimation;
+        vec4 vpos = modelViewMatrix * vec4(v, 1.);
+        transparency = step(length(v), uDepth);
+        warmness = step(.75, fract(size * 7.13));
+        gl_PointSize = size * iResolution.y / 1000. / -vpos.z;
+        gl_Position = projectionMatrix * vpos;
+      }
+    `;
+
+    const fragmentShader = `
+      varying float transparency; varying float warmness;
+      uniform float iAlpha; uniform vec3 uCool; uniform vec3 uWarm;
+      void main() {
+        vec3 color = mix(uCool * .8, uWarm * .8, warmness);
+        float tex = smoothstep(1., .3, length(2. * gl_PointCoord - 1.));
+        gl_FragColor = vec4(tex * color, tex * transparency * iAlpha);
+      }
+    `;
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms,
+      transparent: true
+    });
+    material.stencil = false;
+
+    const points = new THREE.Points(geometry, material);
+    points.position.set(0, 0, -1);
+    points.layers.enable(LAYERS.ENTIRE_SCENE);
+    scene.add(points);
+
+    // 5. Postprocessing
+    const renderScene = new RenderPass(scene, camera);
+
+    // torusComposer
+    const torusComposer = new EffectComposer(renderer);
+    torusComposer.renderToScreen = false;
+    torusComposer.addPass(renderScene);
+    torusComposer.addPass(new ShaderPass(GammaCorrectionShader));
+    torusComposer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.3, 0.3, 0));
+    torusComposer.addPass(new ShaderPass(CopyShader));
+
+    // bloomComposer
+    const bloomComposer = new EffectComposer(renderer);
+    bloomComposer.renderToScreen = false;
+    bloomComposer.addPass(renderScene);
+    bloomComposer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.7, 0));
+    bloomComposer.addPass(new ShaderPass(GammaCorrectionShader));
+
+    // FinalPass
+    const FinalShader = {
+      uniforms: {
+        iTime: { value: 0 },
+        tDiffuse: { value: null },
+        torusTexture: { value: null },
+        bloomTexture: { value: null },
+        haloTexture: { value: null },
+        uBg: { value: activePalette.bgColor },
+        uFlameA: { value: activePalette.flameColor },
+        uFlameB: { value: activePalette.flameColor2 },
+        uFlameAmt: { value: activePalette.flameAmt }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float iTime;
+        uniform sampler2D tDiffuse;
+        uniform sampler2D bloomTexture;
+        uniform sampler2D torusTexture;
+        uniform sampler2D haloTexture;
+        uniform vec3 uBg;
+        uniform vec3 uFlameA;
+        uniform vec3 uFlameB;
+        uniform float uFlameAmt;
+        varying vec2 vUv;
+
+        vec3 warp3d(vec3 pos, float t) {
+          float curv = 0.8, a = 1.9, b = 0.7;
+          pos *= 2.0;
+          pos.x += curv * sin(t + a * pos.y) + t * b;
+          pos.y += curv * cos(t + a * pos.x);
+          pos.y += curv * sin(t + a * pos.z) + t * b;
+          pos.z += curv * cos(t + a * pos.y);
+          pos.z += curv * sin(t + a * pos.x) + t * b;
+          pos.x += curv * cos(t + a * pos.z);
+          return 0.5 + 0.5 * cos(pos.xyz + vec3(1.0, 2.0, 4.0));
+        }
+
+        void main() {
+          vec2 uv = 2.0 * vUv - 1.0;
+          vec3 w = pow(warp3d(vec3(uv.x, sin(uv.y), uv.y), iTime * 1.5), vec3(1.5));
+          vec3 flame = 1.5 * uFlameA * w.x;
+          flame *= w.y;
+          flame += uFlameB * w.z;
+          flame *= smoothstep(0.25, 1.0, abs(uv.y));
+          float md = smoothstep(-0.7, 1.0, -uv.y * uv.x);
+          flame *= md * md;
+          vec3 bg = uBg * (1.0 - 0.4 * length(uv));
+          vec3 halo = texture2D(haloTexture, vUv).xyz;
+          
+          vec3 diffuseColor = texture2D(tDiffuse, vUv).xyz;
+          vec3 bloomColor = texture2D(bloomTexture, vUv).xyz;
+          vec3 torusColor = texture2D(torusTexture, vUv).xyz;
+
+          gl_FragColor = vec4(bg + flame * uFlameAmt + bloomColor + torusColor + diffuseColor + halo, 1.0);
+        }
+      `
+    };
+
+    const finalPass = new ShaderPass(FinalShader);
+    const finalComposer = new EffectComposer(renderer);
+    finalComposer.addPass(renderScene);
+    finalComposer.addPass(finalPass);
+
+    finalPass.uniforms.bloomTexture.value = bloomComposer.renderTarget1.texture;
+    finalPass.uniforms.torusTexture.value = torusComposer.renderTarget1.texture;
+
+    const dummyTex = new THREE.DataTexture(new Uint8Array([0,0,0,0]), 1, 1, THREE.RGBAFormat);
+    dummyTex.needsUpdate = true;
+    finalPass.uniforms.haloTexture.value = dummyTex;
+
+    // Listen to parent postMessage events
+    window.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'object') {
+        if (event.data.type === 'setMode' && PALETTES[event.data.mode]) {
+          currentMode = event.data.mode;
+        }
+      }
+    });
+
+    // 6. Animation state
+    const appearStart = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now() / 1000;
+
+      // Color interpolation (lerp) for mode transitions
+      const targetPalette = PALETTES[currentMode];
+      const lerpSpeed = 0.05;
+
+      activePalette.bgColor.lerp(hexToVec3(targetPalette.bgColor), lerpSpeed);
+      activePalette.flameColor.lerp(hexToVec3(targetPalette.flameColor), lerpSpeed);
+      activePalette.flameColor2.lerp(hexToVec3(targetPalette.flameColor2), lerpSpeed);
+      activePalette.coolColor.lerp(hexToVec3(targetPalette.coolColor), lerpSpeed);
+      activePalette.warmColor.lerp(hexToVec3(targetPalette.warmColor), lerpSpeed);
+      activePalette.flameAmt += (targetPalette.flameAmt - activePalette.flameAmt) * lerpSpeed;
+      activePalette.alpha += (targetPalette.alpha - activePalette.alpha) * lerpSpeed;
+
+      // Update uniforms
+      material.uniforms.uCool.value.copy(activePalette.coolColor);
+      material.uniforms.uWarm.value.copy(activePalette.warmColor);
+
+      // Final pass backgrounds
+      finalPass.uniforms.uBg.value.copy(activePalette.bgColor);
+      finalPass.uniforms.uFlameA.value.copy(activePalette.flameColor);
+      finalPass.uniforms.uFlameB.value.copy(activePalette.flameColor2);
+      finalPass.uniforms.uFlameAmt.value = activePalette.flameAmt;
+
+      // Fade-in on load
+      const elapsed = performance.now() - appearStart;
+      const t = Math.min(elapsed / 2200, 1);
+      const eased = t * t * t * (t * (t * 6 - 15) + 10);
+      material.uniforms.iAlpha.value = eased * activePalette.alpha;
+
+      // Per-frame point update
+      material.uniforms.iTime.value = now;
+      material.uniforms.iShift.value.add(camera.position.clone().multiplyScalar(0.0022 * CONFIG.driftSpeed));
+
+      finalPass.uniforms.iTime.value = now;
+
+      // Composers rendering
+      camera.layers.set(LAYERS.TORUS_SCENE);
+      torusComposer.render();
+
+      camera.layers.set(LAYERS.BLOOM_SCENE);
+      bloomComposer.render();
+
+      camera.layers.set(LAYERS.ENTIRE_SCENE);
+      finalComposer.render();
+    }
+
+    // Resize Handling
+    window.addEventListener('resize', () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height, false);
+      torusComposer.setSize(width, height);
+      bloomComposer.setSize(width, height);
+      finalComposer.setSize(width, height);
+
+      material.uniforms.iResolution.value = {
+        x: width * window.devicePixelRatio,
+        y: height * window.devicePixelRatio
+      };
+    });
+
+    animate();
+  </script>
+</body>
+</html>

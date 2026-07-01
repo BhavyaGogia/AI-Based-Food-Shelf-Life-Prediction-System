@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storm Scene</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.143.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { GammaCorrectionShader } from 'three/addons/shaders/GammaCorrectionShader.js';
+    import { CopyShader } from 'three/addons/shaders/CopyShader.js';
+
+    // 1. PALETTES & CONFIG
+    const PALETTES = {
+      dark: {
+        bgColor: '#150314',
+        flameColor: '#d9255e',
+        flameColor2: '#d9b45b',
+        flameAmt: 0.18,
+        atmoColor: '#e06b9b',
+        coreColor: '#52061e',
+        midColor: '#d9255e',
+        rimColor: '#d9b45b',
+        opacity: 2.0,
+        brightness: 1.4
+      },
+      light: {
+        bgColor: '#fdf4f8',
+        flameColor: '#fcd3e1',
+        flameColor2: '#fef08a',
+        flameAmt: 0.3,
+        atmoColor: '#ec4899',
+        coreColor: '#7c1236',
+        midColor: '#b91c1c',
+        rimColor: '#c2410c',
+        opacity: 1.4,
+        brightness: 1.1
+      }
+    };
+
+    const CONFIG = {
+      atmoCount: 300,
+      atmoSize: 24,
+      atmoSpeed: 1.0,
+      pointSize: 80,
+      spin: 0.03,
+      blowUp: 0,
+      repelRadius: 1.4,
+      repelStrength: 4,
+      scrollDive: 3,
+      scrollGrow: 0.5,
+      scrollSpin: 0.6,
+      parallax: 0.7,
+    };
+
+    const LAYERS = {
+      NONE: 0,
+      TORUS_SCENE: 1,
+      BLOOM_SCENE: 2,
+      ENTIRE_SCENE: 3
+    };
+
+    function hexToVec3(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      return new THREE.Vector3(
+        ((n >> 16) & 255) / 255,
+        ((n >> 8) & 255) / 255,
+        (n & 255) / 255
+      );
+    }
+
+    // Determine initial theme mode
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentMode = urlParams.get('mode') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (!PALETTES[currentMode]) currentMode = 'dark';
+
+    // State for smooth transition
+    const activePalette = {
+      bgColor: hexToVec3(PALETTES[currentMode].bgColor),
+      flameColor: hexToVec3(PALETTES[currentMode].flameColor),
+      flameColor2: hexToVec3(PALETTES[currentMode].flameColor2),
+      flameAmt: PALETTES[currentMode].flameAmt,
+      atmoColor: hexToVec3(PALETTES[currentMode].atmoColor),
+      coreColor: hexToVec3(PALETTES[currentMode].coreColor),
+      midColor: hexToVec3(PALETTES[currentMode].midColor),
+      rimColor: hexToVec3(PALETTES[currentMode].rimColor),
+      opacity: PALETTES[currentMode].opacity,
+      brightness: PALETTES[currentMode].brightness
+    };
+
+    // 2. Boilerplate Setup
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGL1Renderer({ canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.VSMShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = new THREE.Fog(0x000000, 0, 15);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 80);
+    camera.position.set(0, 0, 7);
+    camera.layers.enable(LAYERS.TORUS_SCENE);
+    camera.layers.enable(LAYERS.BLOOM_SCENE);
+    camera.layers.enable(LAYERS.ENTIRE_SCENE);
+    scene.add(camera);
+
+    // 3. Storm Orb Geometry
+    const count = 50000;
+    const radius = 2.5;
+    const geometry = new THREE.BufferGeometry();
+
+    const positions = new Float32Array(count * 3);
+    const scales = new Float32Array(count);
+    const noises = new Float32Array(count);
+    const radialPush = new Float32Array(count);
+    const mixv = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      let u, v, s;
+      do {
+        u = Math.random() * 2 - 1;
+        v = Math.random() * 2 - 1;
+        s = u * u + v * v;
+      } while (s >= 1 || s === 0);
+
+      const factor = 2 * Math.sqrt(1 - s);
+      const dx = u * factor;
+      const dy = v * factor;
+      const dz = 1 - 2 * s;
+
+      const rN = Math.pow(Math.random(), 0.4);
+      const r = radius * (0.55 + rN * 0.45);
+
+      positions[i3] = dx * r;
+      positions[i3 + 1] = dy * r;
+      positions[i3 + 2] = dz * r;
+
+      mixv[i] = rN;
+      scales[i] = 0.45 + Math.random() * 0.8;
+      noises[i] = Math.random();
+      radialPush[i] = 0.4 + rN * 1.1;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+    geometry.setAttribute('aNoise', new THREE.BufferAttribute(noises, 1));
+    geometry.setAttribute('aRadialPush', new THREE.BufferAttribute(radialPush, 1));
+    geometry.setAttribute('aMix', new THREE.BufferAttribute(mixv, 1));
+
+    // 4. Storm Orb Material
+    const uniforms = {
+      uTime: { value: 0 },
+      uSize: { value: CONFIG.pointSize },
+      uOpacity: { value: 0 },
+      uBlowUp: { value: CONFIG.blowUp },
+      uCursor: { value: new THREE.Vector3() },
+      uRepelRadius: { value: CONFIG.repelRadius },
+      uRepelStrength: { value: CONFIG.repelStrength },
+      uActivity: { value: 0 },
+      uCore: { value: activePalette.coreColor },
+      uMid: { value: activePalette.midColor },
+      uRim: { value: activePalette.rimColor },
+      uBrightness: { value: activePalette.brightness }
+    };
+
+    const vertexShader = `
+      uniform float uTime; uniform float uSize; uniform float uBlowUp;
+      uniform vec3 uCursor; uniform float uRepelRadius; uniform float uRepelStrength; uniform float uActivity;
+      uniform vec3 uCore; uniform vec3 uMid; uniform vec3 uRim;
+      attribute float aScale; attribute float aNoise; attribute float aRadialPush; attribute float aMix;
+      varying vec3 vColor; varying float vBlowUp;
+      void main() {
+        vec3 pos = position;
+
+        // Per-particle in/out wobble.
+        float t = uTime * 1.4 + aNoise * 6.2831;
+        float wobble = sin(t) * 0.1 * aRadialPush;
+        pos *= 1.0 + wobble;
+
+        // Slow secondary swirl on xz.
+        float swirlAngle = uTime * 0.05 + aNoise * 6.2831;
+        mat2 swirl = mat2(cos(swirlAngle), -sin(swirlAngle), sin(swirlAngle), cos(swirlAngle));
+        pos.xz = swirl * pos.xz;
+
+        // Blow-up — radial explosion with a squared falloff.
+        vec3 outward = normalize(pos + vec3(0.0001));
+        float blow = uBlowUp * uBlowUp;
+        pos += outward * blow * (10.0 + aNoise * 18.0) * aRadialPush;
+
+        vec4 modelPosition = modelMatrix * vec4(pos, 1.0);
+
+        vec3 toParticle = modelPosition.xyz - uCursor;
+        float dist = length(toParticle);
+        float falloff = smoothstep(uRepelRadius, 0.0, dist);
+        modelPosition.xyz += normalize(toParticle + vec3(0.0001)) * falloff * uRepelStrength * uActivity;
+
+        vec4 viewPosition = viewMatrix * modelPosition;
+        gl_Position = projectionMatrix * viewPosition;
+        gl_PointSize = uSize * aScale;
+        gl_PointSize *= (1.0 / -viewPosition.z);
+
+        // Three-stop radial gradient (aMix = biased radius 0..1).
+        float t1 = smoothstep(0.25, 0.85, aMix);
+        vec3 mix1 = mix(uCore, uMid, t1);
+        float t2 = clamp((aMix - 0.7) * 3.0, 0.0, 1.0);
+        vColor = mix(mix1, uRim, t2);
+        vBlowUp = uBlowUp;
+      }
+    `;
+
+    const fragmentShader = `
+      uniform float uOpacity; uniform float uBrightness;
+      varying vec3 vColor; varying float vBlowUp;
+      void main() {
+        vec2 uv = gl_PointCoord - 0.5;
+        float d = length(uv);
+        if (d > 0.5) discard;
+        float strength = pow(1.0 - d * 2.0, 4.5);
+        vec3 color = mix(vec3(0.0), vColor, strength);
+        float blowFade = 1.0 - smoothstep(0.15, 1.0, vBlowUp);
+        gl_FragColor = vec4(color * uBrightness, strength * uOpacity * blowFade);
+      }
+    `;
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.layers.enable(LAYERS.ENTIRE_SCENE);
+
+    const group = new THREE.Group();
+    group.add(points);
+    scene.add(group);
+
+    // 5. Ambient Atmosphere Motes
+    const N = Math.round(CONFIG.atmoCount);
+    const atmoPositions = new Float32Array(N * 3);
+    const atmoSizes = new Float32Array(N);
+    const atmoSeeds = new Float32Array(N);
+
+    for (let i = 0; i < N; i++) {
+      atmoPositions[i * 3] = Math.random() * 2 - 1;
+      atmoPositions[i * 3 + 1] = Math.random() * 2 - 1;
+      atmoPositions[i * 3 + 2] = Math.random() * 2 - 1;
+      atmoSizes[i] = CONFIG.atmoSize * (0.4 + Math.random());
+      atmoSeeds[i] = Math.random();
+    }
+
+    const atmoGeo = new THREE.BufferGeometry();
+    atmoGeo.setAttribute('position', new THREE.BufferAttribute(atmoPositions, 3));
+    atmoGeo.setAttribute('size', new THREE.BufferAttribute(atmoSizes, 1));
+    atmoGeo.setAttribute('seed', new THREE.BufferAttribute(atmoSeeds, 1));
+
+    const atmoUniforms = {
+      uTime: { value: 0 },
+      uColor: { value: activePalette.atmoColor },
+      uRes: { value: new THREE.Vector2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio) }
+    };
+
+    const atmoVertexShader = `
+      attribute float size; attribute float seed; uniform float uTime; uniform vec2 uRes;
+      varying float vA;
+      vec3 warp(vec3 p, float t){ float c=0.9,a=1.9,b=0.02,s=0.05; p*=2.;
+        p.x+=c*sin(s*t+a*p.y)+t*b; p.y+=c*cos(s*t+a*p.x); p.y+=c*sin(s*t+a*p.z)+t*b;
+        p.z+=c*cos(s*t+a*p.y); p.z+=c*sin(s*t+a*p.x)+t*b; p.x+=c*cos(s*t+a*p.z);
+        return cos(p+vec3(1,2,4)); }
+      void main(){
+        vec3 v = position*4.0 + warp(position, uTime)*1.2;
+        vec4 mv = modelViewMatrix * vec4(v, 1.0);
+        float r = length(v); float farF = 1.0 - smoothstep(5.0, 6.5, r); float nearF = smoothstep(0.0, 0.5, -mv.z);
+        vA = farF * nearF;
+        gl_PointSize = size * uRes.y / 900.0 / -mv.z; gl_PointSize = max(gl_PointSize, 1.0);
+        gl_Position = projectionMatrix * mv;
+      }
+    `;
+
+    const atmoFragmentShader = `
+      uniform vec3 uColor; varying float vA;
+      void main(){ vec2 p = gl_PointCoord - 0.5; float l = length(p); if (l > 0.5) discard;
+        float tex = smoothstep(0.5, 0.0, l); gl_FragColor = vec4(uColor * tex, tex * vA * 0.6); }
+    `;
+
+    const atmoMat = new THREE.ShaderMaterial({
+      vertexShader: atmoVertexShader,
+      fragmentShader: atmoFragmentShader,
+      uniforms: atmoUniforms,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false
+    });
+
+    const atmoPoints = new THREE.Points(atmoGeo, atmoMat);
+    atmoPoints.frustumCulled = false;
+    atmoPoints.layers.enable(LAYERS.ENTIRE_SCENE);
+    scene.add(atmoPoints);
+
+    // 6. Postprocessing
+    const renderScene = new RenderPass(scene, camera);
+
+    // torusComposer
+    const torusComposer = new EffectComposer(renderer);
+    torusComposer.renderToScreen = false;
+    torusComposer.addPass(renderScene);
+    torusComposer.addPass(new ShaderPass(GammaCorrectionShader));
+    torusComposer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.22, 0.2, 0));
+    torusComposer.addPass(new ShaderPass(CopyShader));
+
+    // bloomComposer
+    const bloomComposer = new EffectComposer(renderer);
+    bloomComposer.renderToScreen = false;
+    bloomComposer.addPass(renderScene);
+    bloomComposer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.55, 0));
+    bloomComposer.addPass(new ShaderPass(GammaCorrectionShader));
+
+    // FinalPass
+    const FinalShader = {
+      uniforms: {
+        iTime: { value: 0 },
+        tDiffuse: { value: null },
+        torusTexture: { value: null },
+        bloomTexture: { value: null },
+        haloTexture: { value: null },
+        uBg: { value: activePalette.bgColor },
+        uFlameA: { value: activePalette.flameColor },
+        uFlameB: { value: activePalette.flameColor2 },
+        uFlameAmt: { value: activePalette.flameAmt }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float iTime;
+        uniform sampler2D tDiffuse;
+        uniform sampler2D bloomTexture;
+        uniform sampler2D torusTexture;
+        uniform sampler2D haloTexture;
+        uniform vec3 uBg;
+        uniform vec3 uFlameA;
+        uniform vec3 uFlameB;
+        uniform float uFlameAmt;
+        varying vec2 vUv;
+
+        vec3 warp3d(vec3 pos, float t) {
+          float curv = 0.8, a = 1.9, b = 0.7;
+          pos *= 2.0;
+          pos.x += curv * sin(t + a * pos.y) + t * b;
+          pos.y += curv * cos(t + a * pos.x);
+          pos.y += curv * sin(t + a * pos.z) + t * b;
+          pos.z += curv * cos(t + a * pos.y);
+          pos.z += curv * sin(t + a * pos.x) + t * b;
+          pos.x += curv * cos(t + a * pos.z);
+          return 0.5 + 0.5 * cos(pos.xyz + vec3(1.0, 2.0, 4.0));
+        }
+
+        void main() {
+          vec2 uv = 2.0 * vUv - 1.0;
+          vec3 w = pow(warp3d(vec3(uv.x, sin(uv.y), uv.y), iTime * 1.5), vec3(1.5));
+          vec3 flame = 1.5 * uFlameA * w.x;
+          flame *= w.y;
+          flame += uFlameB * w.z;
+          flame *= smoothstep(0.25, 1.0, abs(uv.y));
+          float md = smoothstep(-0.7, 1.0, -uv.y * uv.x);
+          flame *= md * md;
+          vec3 bg = uBg * (1.0 - 0.4 * length(uv));
+          vec3 halo = texture2D(haloTexture, vUv).xyz;
+          
+          vec3 diffuseColor = texture2D(tDiffuse, vUv).xyz;
+          vec3 bloomColor = texture2D(bloomTexture, vUv).xyz;
+          vec3 torusColor = texture2D(torusTexture, vUv).xyz;
+
+          gl_FragColor = vec4(bg + flame * uFlameAmt + bloomColor + torusColor + diffuseColor + halo, 1.0);
+        }
+      `
+    };
+
+    const finalPass = new ShaderPass(FinalShader);
+    const finalComposer = new EffectComposer(renderer);
+    finalComposer.addPass(renderScene);
+    finalComposer.addPass(finalPass);
+
+    finalPass.uniforms.bloomTexture.value = bloomComposer.renderTarget1.texture;
+    finalPass.uniforms.torusTexture.value = torusComposer.renderTarget1.texture;
+
+    const dummyTex = new THREE.DataTexture(new Uint8Array([0,0,0,0]), 1, 1, THREE.RGBAFormat);
+    dummyTex.needsUpdate = true;
+    finalPass.uniforms.haloTexture.value = dummyTex;
+
+    // 7. Interaction state
+    const POINTER = {
+      ndc: new THREE.Vector2(),
+      world: new THREE.Vector3(),
+      active: false,
+      lastMove: 0,
+      activity: 0
+    };
+
+    const mouseSmooth = new THREE.Vector2();
+    let scrollTarget = 0;
+    let scrollSmooth = 0;
+    let scrollCurrent = 0;
+
+    // Listen to parent postMessage events
+    window.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'object') {
+        if (event.data.type === 'setMode' && PALETTES[event.data.mode]) {
+          currentMode = event.data.mode;
+        }
+        if (event.data.type === 'setScroll') {
+          scrollTarget = THREE.MathUtils.clamp(event.data.scroll, 0, 1);
+        }
+        if (event.data.type === 'setPointer') {
+          POINTER.ndc.x = event.data.x;
+          POINTER.ndc.y = event.data.y;
+          POINTER.active = true;
+          POINTER.lastMove = performance.now() / 1000;
+        }
+        if (event.data.type === 'pointerLeave') {
+          POINTER.active = false;
+        }
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      POINTER.ndc.x = (e.clientX / window.innerWidth) * 2 - 1;
+      POINTER.ndc.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      POINTER.active = true;
+      POINTER.lastMove = performance.now() / 1000;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      POINTER.active = false;
+    });
+
+    window.addEventListener('scroll', () => {
+      const scrollHeight = document.documentElement.scrollHeight;
+      const innerHeight = window.innerHeight;
+      scrollTarget = THREE.MathUtils.clamp(window.scrollY / (scrollHeight - innerHeight), 0, 1);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+
+    function updatePointer() {
+      if (POINTER.active) {
+        raycaster.setFromCamera(POINTER.ndc, camera);
+        const target = new THREE.Vector3();
+        if (raycaster.ray.intersectPlane(planeZ, target)) {
+          POINTER.world.lerp(target, 0.12);
+        }
+      } else {
+        POINTER.world.lerp(new THREE.Vector3(0, 0, 0), 0.12);
+      }
+
+      const now = performance.now() / 1000;
+      const idle = now - POINTER.lastMove;
+      const want = (POINTER.active && idle < 3) ? 1 : 0;
+      POINTER.activity += (want - POINTER.activity) * 0.06;
+
+      material.uniforms.uCursor.value.copy(POINTER.world);
+      material.uniforms.uActivity.value = POINTER.activity;
+    }
+
+    // 8. Render & Animation Loop
+    let t0 = performance.now() / 1000;
+    const appearStart = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now() / 1000;
+      const dt = Math.min(0.05, now - t0);
+      t0 = now;
+
+      // Color interpolation (lerp) for mode transitions
+      const targetPalette = PALETTES[currentMode];
+      const lerpSpeed = 0.05;
+
+      activePalette.bgColor.lerp(hexToVec3(targetPalette.bgColor), lerpSpeed);
+      activePalette.flameColor.lerp(hexToVec3(targetPalette.flameColor), lerpSpeed);
+      activePalette.flameColor2.lerp(hexToVec3(targetPalette.flameColor2), lerpSpeed);
+      activePalette.atmoColor.lerp(hexToVec3(targetPalette.atmoColor), lerpSpeed);
+      activePalette.coreColor.lerp(hexToVec3(targetPalette.coreColor), lerpSpeed);
+      activePalette.midColor.lerp(hexToVec3(targetPalette.midColor), lerpSpeed);
+      activePalette.rimColor.lerp(hexToVec3(targetPalette.rimColor), lerpSpeed);
+      activePalette.flameAmt += (targetPalette.flameAmt - activePalette.flameAmt) * lerpSpeed;
+      activePalette.brightness += (targetPalette.brightness - activePalette.brightness) * lerpSpeed;
+      activePalette.opacity += (targetPalette.opacity - activePalette.opacity) * lerpSpeed;
+
+      // Update shader uniforms
+      material.uniforms.uTime.value = now;
+      material.uniforms.uCore.value.copy(activePalette.coreColor);
+      material.uniforms.uMid.value.copy(activePalette.midColor);
+      material.uniforms.uRim.value.copy(activePalette.rimColor);
+      material.uniforms.uBrightness.value = activePalette.brightness;
+
+      // Atmosphere motes
+      atmoMat.uniforms.uTime.value = now * CONFIG.atmoSpeed * 8.0;
+      atmoMat.uniforms.uColor.value.copy(activePalette.atmoColor);
+      atmoPoints.position.copy(camera.position);
+
+      // Final pass backgrounds
+      finalPass.uniforms.uBg.value.copy(activePalette.bgColor);
+      finalPass.uniforms.uFlameA.value.copy(activePalette.flameColor);
+      finalPass.uniforms.uFlameB.value.copy(activePalette.flameColor2);
+      finalPass.uniforms.uFlameAmt.value = activePalette.flameAmt;
+
+      // Scroll/Mouse damping
+      scrollSmooth = THREE.MathUtils.lerp(scrollSmooth, scrollTarget, 0.10);
+      scrollCurrent = THREE.MathUtils.lerp(scrollCurrent, scrollSmooth, 0.06);
+
+      mouseSmooth.x = THREE.MathUtils.lerp(mouseSmooth.x, POINTER.active ? POINTER.ndc.x : 0, 0.06);
+      mouseSmooth.y = THREE.MathUtils.lerp(mouseSmooth.y, POINTER.active ? POINTER.ndc.y : 0, 0.06);
+
+      // Camera position
+      camera.position.set(mouseSmooth.x * CONFIG.parallax, mouseSmooth.y * CONFIG.parallax, 7 - scrollCurrent * CONFIG.scrollDive);
+      camera.lookAt(0, 0, 0);
+
+      // Scale & Rotate Storm
+      group.scale.setScalar(1 + scrollCurrent * CONFIG.scrollGrow);
+      group.rotation.y += dt * (CONFIG.spin + scrollCurrent * CONFIG.scrollSpin);
+      group.rotation.x += dt * CONFIG.spin * 0.33;
+
+      // Appear fade
+      const elapsed = performance.now() - appearStart;
+      const fade = THREE.MathUtils.clamp((elapsed - 300) / 1400, 0, 1);
+      material.uniforms.uOpacity.value = fade * activePalette.opacity;
+
+      updatePointer();
+
+      // Composers rendering
+      finalPass.uniforms.iTime.value = now;
+
+      camera.layers.set(LAYERS.TORUS_SCENE);
+      torusComposer.render();
+
+      camera.layers.set(LAYERS.BLOOM_SCENE);
+      bloomComposer.render();
+
+      camera.layers.set(LAYERS.ENTIRE_SCENE);
+      finalComposer.render();
+    }
+
+    // Resize Handling
+    window.addEventListener('resize', () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height, false);
+      torusComposer.setSize(width, height);
+      bloomComposer.setSize(width, height);
+      finalComposer.setSize(width, height);
+
+      atmoMat.uniforms.uRes.value.set(width * window.devicePixelRatio, height * window.devicePixelRatio);
+    });
+
+    animate();
+  </script>
+</body>
+</html>

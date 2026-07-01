@@ -4,6 +4,7 @@ import { ClipboardList, Brain, BarChart3, ArrowRight } from 'lucide-react'
 import AnimatedText from '../components/AnimatedText'
 import Magnetic from '../components/Magnetic'
 import { Link } from 'react-router-dom'
+import StarfieldCanvas from '../components/StarfieldCanvas'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -58,13 +59,13 @@ export default function HeroPage() {
       animate="animate"
       exit="exit"
     >
+      <StarfieldCanvas />
       {/* === HERO CONTENT === */}
       <motion.section
         className="hero-content"
         variants={stagger}
         initial="initial"
         animate="animate"
-      >
       >
         <AnimatedText 
           text="Welcome." 

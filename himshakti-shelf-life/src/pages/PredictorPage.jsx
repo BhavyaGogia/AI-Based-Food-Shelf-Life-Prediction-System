@@ -6,6 +6,7 @@ import {
   ChevronRight, AlertTriangle
 } from 'lucide-react'
 import AnimatedText from '../components/AnimatedText'
+import StarfieldCanvas from '../components/StarfieldCanvas'
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -161,12 +162,13 @@ export default function PredictorPage() {
   return (
     <motion.div 
       className="page-container" 
-      style={{ background: '#f5efe6' }}
+      style={{ background: 'transparent' }}
       variants={pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
     >
+      <StarfieldCanvas />
       <motion.section className="page-hero" style={{ paddingBottom: '30px' }} {...fadeUp(0)}>
         <AnimatedText 
           text="Shelf Life Predictor" 

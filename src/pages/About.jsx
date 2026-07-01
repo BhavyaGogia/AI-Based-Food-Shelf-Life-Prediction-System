@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import StormCanvas from '../components/StormCanvas'
 
 export default function About() {
   const mainRef = useRef(null)
@@ -22,18 +23,19 @@ export default function About() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
+    <div className="min-h-screen flex flex-col bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
+      <StormCanvas />
       <Navbar />
 
-      <main className="flex-grow" ref={mainRef}>
+      <main className="flex-grow relative z-10" ref={mainRef}>
 
         {/* Hero banner (center aligned) with ultra-dark gradient background and shimmer */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-100 via-emerald-50 to-slate-200 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 text-slate-900 dark:text-white py-32 flex items-center justify-center text-center border-b border-slate-200 dark:border-white/10 transition-colors duration-500">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-100/30 via-emerald-50/20 to-slate-200/30 dark:from-dark-950/20 dark:via-dark-900/10 dark:to-dark-950/20 text-slate-900 dark:text-white py-32 flex items-center justify-center text-center border-b border-slate-200/50 dark:border-white/10 transition-colors duration-500">
           {/* Shimmer Effect */}
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,25%,rgba(0,0,0,0.03),50%,transparent,75%,rgba(0,0,0,0.03))] dark:bg-[linear-gradient(110deg,transparent,25%,rgba(255,255,255,0.05),50%,transparent,75%,rgba(255,255,255,0.05))] bg-[length:200%_100%] animate-shimmer pointer-events-none"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,25%,rgba(0,0,0,0.01),50%,transparent,75%,rgba(0,0,0,0.01))] dark:bg-[linear-gradient(110deg,transparent,25%,rgba(255,255,255,0.02),50%,transparent,75%,rgba(255,255,255,0.02))] bg-[length:200%_100%] animate-shimmer pointer-events-none"></div>
           {/* Glows */}
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 dark:bg-neon/10 blur-[150px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/10 dark:bg-violet/10 blur-[150px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 dark:bg-neon/5 blur-[150px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 dark:bg-violet/5 blur-[150px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
           
           <div className="section-container relative z-10 reveal">
             <h1 className="font-heading font-extrabold text-5xl sm:text-7xl lg:text-8xl mb-6 tracking-tight drop-shadow-sm text-slate-900 dark:text-white">
@@ -125,12 +127,12 @@ export default function About() {
         </div>
 
         {/* Glassmorphism Cards for 'Internship Context' */}
-        <section aria-labelledby="about-intern" className="py-32 relative bg-slate-100/80 dark:bg-dark-900/50 overflow-hidden border-t border-slate-200 dark:border-white/10 transition-colors duration-500">
+        <section aria-labelledby="about-intern" className="py-32 relative bg-slate-100/20 dark:bg-dark-900/15 overflow-hidden border-t border-slate-200/50 dark:border-white/10 transition-colors duration-500">
           {/* Background Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/10 dark:bg-neon/10 blur-[150px] rounded-full pointer-events-none"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-500/5 dark:bg-neon/5 blur-[150px] rounded-full pointer-events-none"></div>
           
           <div className="section-container relative z-10 reveal">
-            <div className="glass-panel max-w-4xl mx-auto p-12 sm:p-16 text-center border border-slate-200 dark:border-white/20 shadow-xl dark:shadow-glass-hover hover:-translate-y-2 transition-transform duration-500 bg-white/90 dark:bg-dark-900/90">
+            <div className="glass-panel max-w-4xl mx-auto p-12 sm:p-16 text-center border border-slate-200/50 dark:border-white/10 shadow-xl dark:shadow-glass-hover hover:-translate-y-2 transition-transform duration-500 bg-white/70 dark:bg-dark-900/70">
               <h2 id="about-intern" className="font-heading font-extrabold text-3xl sm:text-5xl text-slate-900 dark:text-white mb-6 tracking-tight">
                 👤 Internship Context
               </h2>

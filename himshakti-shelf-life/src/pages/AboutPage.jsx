@@ -5,6 +5,7 @@ import {
   Brain, Target, Lightbulb, MapPin, Award, Layers, Leaf
 } from 'lucide-react'
 import AnimatedText from '../components/AnimatedText'
+import StormCanvas from '../components/StormCanvas'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -50,11 +51,13 @@ export default function AboutPage() {
   return (
     <motion.div 
       className="page-container"
+      style={{ background: 'transparent' }}
       variants={pageVariants}
       initial="initial"
       animate="animate"
       exit="exit"
     >
+      <StormCanvas />
       {/* Hero */}
       <motion.section className="page-hero" {...fadeUp(0)}>
         <div className="page-hero-icon">

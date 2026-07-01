@@ -7,6 +7,7 @@ const errorHandler = require('./middleware/errorHandler');
 // Route imports
 const productsRoutes = require('./routes/products.routes');
 const shelfLifeRoutes = require('./routes/shelfLife.routes');
+const { getStats } = require('./controllers/shelfLife.controller');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use(cors({
 // Routes
 app.use('/api/products', productsRoutes);
 app.use('/api/shelf-life', shelfLifeRoutes);
+app.get('/api/stats', getStats);
 
 // Global Error Handler
 app.use(errorHandler);

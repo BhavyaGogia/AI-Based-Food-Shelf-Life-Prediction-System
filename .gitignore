@@ -9,3 +9,4 @@ dist/
 .agents/
 logs
 *.log
+mongodb_data/

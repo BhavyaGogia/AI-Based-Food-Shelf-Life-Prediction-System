@@ -28,11 +28,11 @@ function generateUniqueName(category, index) {
 
 async function importDataset() {
   try {
-    if (!process.env.MONGODB_URI || process.env.MONGODB_URI.includes('localhost')) {
-      console.log('⚠️ Localhost / missing MongoDB URI detected. Processing CSV dataset offline...');
+    if (!process.env.MONGODB_URI) {
+      console.log('⚠️ Missing MongoDB URI. Processing CSV dataset offline...');
     } else {
       await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 2000 });
-      console.log('✅ Connected to MongoDB Atlas');
+      console.log('✅ Connected to MongoDB Database');
     }
 
     // Read the generated CSV file
