@@ -2,7 +2,7 @@ const rateLimit = require('express-rate-limit');
 
 const shelfLifeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15-minute window
-  max: process.env.NODE_ENV === 'development' ? 500 : 10,                     // 500 local, 10 prod
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import { useTheme } from '../context/ThemeContext'
 
-export default function StormCanvas() {
+export default function GalaxyCanvas() {
   const { theme } = useTheme()
   const iframeRef = useRef(null)
 
-  // Send current theme to iframe when theme changes
+  // Send current theme to iframe when theme changes (preserved for future extension)
   useEffect(() => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage({ type: 'setMode', mode: theme }, '*')
@@ -68,7 +68,7 @@ export default function StormCanvas() {
   return (
     <iframe
       ref={iframeRef}
-      src={`/storm.html?mode=${theme}`}
+      src={`/galaxy.html?mode=${theme}`}
       style={{
         position: 'fixed',
         inset: 0,
@@ -79,7 +79,7 @@ export default function StormCanvas() {
         zIndex: 0,
         pointerEvents: 'none',
       }}
-      title="Storm Plasma Orb Background"
+      title="Elliptical Galaxy Background"
     />
   )
 }

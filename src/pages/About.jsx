@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import StormCanvas from '../components/StormCanvas'
+import GalaxyCanvas from '../components/GalaxyCanvas'
 
 export default function About() {
   const mainRef = useRef(null)
@@ -24,7 +24,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body">
-      <StormCanvas />
+      <GalaxyCanvas />
       <Navbar />
 
       <main className="flex-grow relative z-10" ref={mainRef}>

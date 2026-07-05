@@ -1,9 +1,62 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+function parseAIResponse(text, provider) {
+  // Extract JSON from markdown blocks if present
+  const jsonMatch = text.match(/```(?:json)?\n?([\s\S]*?)\n?```/) || [null, text];
+  
+  try {
+    let cleanText = (jsonMatch[1] || text).trim();
+    // Some basic cleanup in case model appended text
+    if (cleanText.startsWith('{') && cleanText.endsWith('}')) {
+      return JSON.parse(cleanText);
+    }
+    // Fallback naive parse
+    return JSON.parse(cleanText.substring(cleanText.indexOf('{'), cleanText.lastIndexOf('}') + 1));
+  } catch (err) {
+    console.error(`Failed to parse ${provider} output:`, text);
+    throw new Error(`${provider} returned invalid JSON`);
+  }
+}
+
 async function analyseShelfLife(promptText) {
+  // 1. Try NVIDIA First (Llama 3.1 70B)
+  if (process.env.NVIDIA_API_KEY) {
+    try {
+      console.log("🤖 Attempting AI analysis via NVIDIA...");
+      const nvidiaRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "meta/llama-3.1-8b-instruct",
+          messages: [
+            { role: "system", content: "You are a specialized AI that ONLY outputs raw, valid JSON. Never output conversational text or markdown formatting." },
+            { role: "user", content: promptText }
+          ],
+          temperature: 0.1,
+          max_tokens: 1024
+        })
+      });
+
+      if (!nvidiaRes.ok) {
+        throw new Error(`NVIDIA API Error: ${nvidiaRes.status}`);
+      }
+
+      const data = await nvidiaRes.json();
+      const text = data.choices[0].message.content;
+      console.log("✅ NVIDIA Analysis successful!");
+      return parseAIResponse(text, "NVIDIA");
+    } catch (error) {
+      console.error("⚠️ NVIDIA failed:", error.message);
+      throw new Error(`NVIDIA API Failed: ${error.message}`);
+    }
+  }
+
+  // 2. Fallback to Gemini
   if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'your_gemini_api_key_here') {
-    console.warn("⚠️ No GEMINI_API_KEY found! Returning mock AI prediction.");
-    // Simulate API delay
+    console.warn("⚠️ No API keys found! Returning mock AI prediction.");
     await new Promise(r => setTimeout(r, 2000));
     return {
       "product_name": "Himalayan Apple Jam (Mocked)",
@@ -40,20 +93,18 @@ async function analyseShelfLife(promptText) {
     };
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-  const result = await model.generateContent(promptText);
-  const text = result.response.text();
-
-  // Extract JSON from the response
-  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || [null, text];
-  
   try {
-    return JSON.parse(jsonMatch[1].trim());
+    console.log("🤖 Attempting AI analysis via Google Gemini...");
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const result = await model.generateContent(promptText);
+    const text = result.response.text();
+    console.log("✅ Gemini Analysis successful!");
+    return parseAIResponse(text, "Gemini");
   } catch (err) {
-    console.error("Failed to parse Gemini output:", jsonMatch[1]);
-    throw new Error("Gemini returned invalid JSON");
+    console.error("❌ Both NVIDIA and Gemini failed:", err.message);
+    throw err;
   }
 }
 

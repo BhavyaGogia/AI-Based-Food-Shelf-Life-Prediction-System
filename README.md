@@ -2,16 +2,49 @@
 
 HimShakti Food Processing is introducing an AI-powered system to analyze ingredients, sourcing context, and processing methods to predict the realistic shelf life of products. This backend system integrates with a React frontend and utilizes the Gemini 2.5 Flash model to provide accurate shelf life predictions and actionable risk mitigation strategies.
 
+> **Week 5 Update:** Fully migrated from in-memory data to **MongoDB Atlas**. All 6+ API endpoints now read from and write to the real database. 30 products seeded, 482+ analyses stored.
+
 ---
 
 ## 🏗️ Architecture & Database Schema
 
 The backend uses **Node.js, Express, and MongoDB Atlas (Mongoose ODM)**.
 
+### Why MongoDB Atlas?
+
+| Reason | Detail |
+|--------|--------|
+| **Flexible Schema** | `formSnapshot` and `geminiResult` are deeply nested JSON objects — MongoDB's `Mixed` type stores these natively without migrations |
+| **Rapid Iteration** | New form fields were added iteratively during development without ALTER TABLE |
+| **AI Output** | Gemini returns complex nested JSON; document model avoids normalisation overhead |
+| **Free Tier** | Atlas M0 (512MB free) is sufficient for HimShakti's scale |
+| **Mongoose ODM** | Clean validation, middleware hooks, and `timestamps: true` out of the box |
+
+### Collections & Models
+
+| Collection | Model File | Records |
+|------------|-----------|--------|
+| `users` | `backend/src/models/User.model.js` | 2 seeded (staff, admin) |
+| `products` | `backend/src/models/Product.model.js` | 30 seeded |
+| `analyses` | `backend/src/models/Analysis.model.js` | 482+ stored |
+
+### Schema Diagram (Week 5)
+
+![HimShakti MongoDB Schema Diagram](./docs/W5_SchemaDiagram_26100547.png)
+
 ### Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
+    USERS {
+        ObjectId _id PK
+        String username "Required, Unique"
+        String hashedPassword "bcrypt"
+        String role "Enum: production_staff, lab_admin"
+        Date createdAt
+        Date updatedAt
+    }
+
     PRODUCT {
         ObjectId _id PK
         String productName "Required, Unique"
@@ -29,11 +62,11 @@ erDiagram
 
     ANALYSIS {
         ObjectId _id PK
-        ObjectId productId FK "Ref: PRODUCT"
+        ObjectId productId FK "Ref: PRODUCT (indexed)"
         String batchReference
         Date analysisDate "Default: Date.now"
-        Mixed formSnapshot "Full input payload"
-        Mixed geminiResult "Raw AI output JSON"
+        Mixed formSnapshot "Full 35-field form payload"
+        Mixed geminiResult "Raw Gemini AI output JSON"
         Number predictedShelfLifeDays
         String riskLevel "Enum: LOW, MEDIUM, HIGH"
         Date createdAt
@@ -58,14 +91,19 @@ erDiagram
    ```
 
 3. **Environment Variables**:
-   Create a `.env` file in the `backend` root and configure the following:
+   Copy `backend/.env.example` to `backend/.env` and fill in your values:
    ```env
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   GEMINI_API_KEY=your_gemini_api_key
+   MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/himshakti
+   GEMINI_API_KEY=your_google_gemini_api_key_here
+   JWT_SECRET=your_jwt_secret_key_here
    PORT=5050
    NODE_ENV=development
-   FRONTEND_URL=http://localhost:5173
    ```
+
+   **Getting your MongoDB Atlas URI:**
+   1. Go to [cloud.mongodb.com](https://cloud.mongodb.com) → Create free M0 cluster
+   2. Database → Connect → Drivers → Node.js → Copy connection string
+   3. Replace `<username>`, `<password>`, and set database name to `himshakti`
 
 4. **Seed the Database** (Optional):
    Populate the MongoDB database with initial sample products.

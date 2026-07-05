@@ -1,18 +1,17 @@
 const CACHE_NAME = 'himshakti-threejs-cache-v1';
 const ASSETS_TO_CACHE = [
   '/starfield.html',
-  '/storm.html',
-  '/cosmic.html',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/build/three.module.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/EffectComposer.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/RenderPass.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/ShaderPass.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/UnrealBloomPass.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/shaders/GammaCorrectionShader.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/shaders/CopyShader.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/Pass.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/postprocessing/MaskPass.js',
-  'https://cdn.jsdelivr.net/npm/three@0.143.0/examples/jsm/shaders/LuminanceHighPassShader.js'
+  '/galaxy.html',
+  'https://unpkg.com/three@0.143.0/build/three.module.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/EffectComposer.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/RenderPass.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/ShaderPass.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/UnrealBloomPass.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/shaders/GammaCorrectionShader.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/shaders/CopyShader.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/Pass.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/postprocessing/MaskPass.js',
+  'https://unpkg.com/three@0.143.0/examples/jsm/shaders/LuminanceHighPassShader.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -50,6 +49,7 @@ self.addEventListener('fetch', (event) => {
         // Cache successful responses from CDN or local HTML files
         if (response.status === 200 && (
           event.request.url.includes('jsdelivr.net') ||
+          event.request.url.includes('unpkg.com') ||
           event.request.url.includes('.html')
         )) {
           const responseClone = response.clone();

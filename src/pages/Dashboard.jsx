@@ -346,6 +346,40 @@ export default function Dashboard() {
     }
   };
 
+  // --- Real Chart Data Calculation (Step 2) ---
+  const totalProducts = products.length || 1;
+
+  // 1. Category Breakdown
+  const categoryCounts = products.reduce((acc, p) => {
+    const cat = p.category || 'Other';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+  
+  const categoryBars = Object.entries(categoryCounts).map(([cat, count]) => ({
+    name: cat,
+    heightPercent: Math.max(15, Math.round((count / totalProducts) * 100)),
+    count
+  }));
+
+  // 2. Risk Distribution
+  const riskCounts = products.reduce((acc, p) => {
+    const r = p.riskLevel || 'PENDING';
+    acc[r] = (acc[r] || 0) + 1;
+    return acc;
+  }, { LOW: 0, MEDIUM: 0, HIGH: 0, PENDING: 0 });
+
+  const lowPct = (riskCounts.LOW / totalProducts) * 100;
+  const medPct = (riskCounts.MEDIUM / totalProducts) * 100;
+  const highPct = (riskCounts.HIGH / totalProducts) * 100;
+  
+  const conic = `conic-gradient(
+    #10b981 0% ${lowPct}%, 
+    #fbbf24 ${lowPct}% ${lowPct + medPct}%, 
+    #ef4444 ${lowPct + medPct}% ${lowPct + medPct + highPct}%, 
+    #94a3b8 ${lowPct + medPct + highPct}% 100%
+  )`;
+
   return (
     <div className="min-h-screen flex bg-transparent text-slate-900 dark:text-slate-100 transition-colors duration-500 font-body" ref={dashboardRef}>
       <StarfieldCanvas />
@@ -408,13 +442,13 @@ export default function Dashboard() {
 
           {isAdmin && (
             <>
-              {/* Dynamic Stats Cards */}
+              {/* Dynamic Stats Cards (Actionable Workflow) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {[
-                  { icon: '📦', label: 'Analyses Run', value: stats.analysesRun, color: 'text-emerald-600 dark:text-neon' },
-                  { icon: '🌾', label: 'Products Tracked', value: stats.productsTracked, color: 'text-emerald-600 dark:text-emerald-400' },
-                  { icon: '✅', label: 'Safe Batches', value: stats.safeBatches, color: 'text-teal-600 dark:text-teal-300' },
-                  { icon: '⚠️', label: 'Risk Warnings', value: stats.riskWarnings, color: 'text-rose-600 dark:text-pinkGlow' },
+                  { icon: '⏳', label: 'Pending AI Review', value: riskCounts.PENDING, color: 'text-slate-600 dark:text-slate-300' },
+                  { icon: '📦', label: 'Active Inventory', value: products.length, color: 'text-emerald-600 dark:text-emerald-400' },
+                  { icon: '⚠️', label: 'Expiring Soon', value: riskCounts.MEDIUM, color: 'text-amber-500 dark:text-amber-400' },
+                  { icon: '🚨', label: 'Critical Risk Alerts', value: riskCounts.HIGH, color: 'text-rose-600 dark:text-pinkGlow' },
                 ].map((stat, i) => (
                   <div key={stat.label} className="glass-card p-6 reveal hover:border-emerald-500/40 dark:hover:border-neon/40 transition-all duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
                     <div className="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
@@ -429,56 +463,91 @@ export default function Dashboard() {
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                 <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800">
-                  <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Shelf Life Trends</h3>
-                  <div className="h-48 w-full border-b-2 border-l-2 border-slate-200 dark:border-slate-800 relative flex items-end justify-between pt-4 px-4 pb-0">
-                    {[40, 70, 45, 90, 65, 80].map((h, i) => (
-                      <div key={i} className="w-10 sm:w-12 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t-xl hover:opacity-80 transition-all cursor-pointer hover:-translate-y-2" style={{ height: `${h}%` }}></div>
-                    ))}
+                  <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Products by Category</h3>
+                  <div className="h-48 w-full border-b-2 border-l-2 border-slate-200 dark:border-slate-800 relative flex items-end justify-around pt-4 px-4 pb-0">
+                    {categoryBars.length > 0 ? categoryBars.map((bar, i) => (
+                      <div key={i} className="flex flex-col items-center justify-end h-full group">
+                        <div className="w-12 sm:w-16 bg-gradient-to-t from-emerald-600 to-teal-400 rounded-t-xl hover:opacity-80 transition-all cursor-pointer relative" style={{ height: `${bar.heightPercent}%` }}>
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs py-1 px-2 rounded font-bold pointer-events-none">
+                            {bar.count}
+                          </div>
+                        </div>
+                        <span className="mt-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">{bar.name}</span>
+                      </div>
+                    )) : (
+                      <div className="flex items-center justify-center w-full h-full text-slate-400 text-sm">No products found</div>
+                    )}
                   </div>
                 </div>
+                
                 <div className="glass-panel p-8 reveal border border-slate-200 dark:border-slate-800" style={{ transitionDelay: '100ms' }}>
                   <h3 className="font-heading font-bold text-xl mb-6 text-slate-900 dark:text-slate-100">Risk Distribution</h3>
-                  <div className="h-48 w-full flex items-center justify-center">
-                    <div className="w-36 h-36 rounded-full border-[14px] border-emerald-500 border-r-amber-400 border-t-emerald-500 border-l-emerald-500 relative animate-blob-rotate shadow-lg">
-                      <div className="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-slate-900 dark:text-slate-200">AI</div>
+                  <div className="flex flex-col items-center">
+                    <div className="h-36 w-36 rounded-full shadow-lg flex items-center justify-center relative transition-transform hover:scale-105" style={{ background: conic }}>
+                      <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center z-10 shadow-inner">
+                         <div className="text-center">
+                           <span className="font-heading font-bold text-3xl text-slate-800 dark:text-white">{products.length}</span>
+                           <span className="block text-[10px] uppercase font-bold text-slate-500">Products</span>
+                         </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-4 mt-6 justify-center text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                      {riskCounts.LOW > 0 && <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></div>Low Risk ({riskCounts.LOW})</span>}
+                      {riskCounts.MEDIUM > 0 && <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-amber-400 shadow-sm"></div>Med Risk ({riskCounts.MEDIUM})</span>}
+                      {riskCounts.HIGH > 0 && <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-rose-500 shadow-sm"></div>High Risk ({riskCounts.HIGH})</span>}
+                      {riskCounts.PENDING > 0 && <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-slate-400 shadow-sm"></div>Not Analysed ({riskCounts.PENDING})</span>}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Recent Predictions Table */}
+              {/* Product Inventory Table */}
               <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
                 <div className="p-8 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Recent Predictions</h3>
+                  <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Product Inventory</h3>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
                   <table className="w-full text-left border-collapse">
-                    <thead>
+                    <thead className="sticky top-0 z-10">
                       <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
                         <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
                         <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">SKU</th>
                         <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Category</th>
+                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Shelf Life (Days)</th>
                         <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {products.slice(0, 5).map((p, i) => {
-                        let status = 'Fresh';
+                      {products.map((p, i) => {
+                        let status = 'AI: Low Risk';
                         let statusPill = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-                        if (p.riskLevel === 'HIGH') {
-                          status = 'Expired';
+                        
+                        if (!p.predictedShelfLifeDays) {
+                          status = 'Not analysed yet';
+                          statusPill = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+                        } else if (p.riskLevel === 'HIGH') {
+                          status = 'High Risk';
                           statusPill = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800';
-                        } else if (p.predictedShelfLifeDays && p.predictedShelfLifeDays < 30) {
-                          status = 'Expiring';
+                        } else if (p.riskLevel === 'MEDIUM') {
+                          status = 'Medium Risk';
                           statusPill = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800';
                         }
+
+                        const displayDays = p.predictedShelfLifeDays || p.baseShelfLifeDays;
+                        const isBaseOnly = !p.predictedShelfLifeDays;
+
                         return (
-                          <tr key={p._id} className="reveal border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors" style={{ transitionDelay: `${i * 100}ms` }}>
-                            <td className="py-5 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
-                            <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
-                            <td className="py-5 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.category}</td>
-                            <td className="py-5 px-8">
-                              <span className={`px-4 py-1.5 text-xs font-bold rounded-full border shadow-sm ${statusPill}`}>{status}</span>
+                          <tr key={p._id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            <td className="py-4 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
+                            <td className="py-4 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
+                            <td className="py-4 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium capitalize">{p.category}</td>
+                            <td className="py-4 px-8">
+                              <span className="font-bold text-slate-800 dark:text-slate-200">{displayDays}</span>
+                              <span className="font-normal text-slate-500 text-xs ml-1">days</span>
+                            </td>
+                            <td className="py-4 px-8">
+                              <span className={`px-3 py-1 text-xs font-bold rounded-full border shadow-sm whitespace-nowrap ${statusPill}`}>{status}</span>
                             </td>
                           </tr>
                         );
