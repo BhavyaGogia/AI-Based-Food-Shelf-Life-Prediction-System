@@ -1,0 +1,158 @@
+{
+	"info": {
+		"_postman_id": "b9687e8f-7f5b-4171-88f6-5ee9a690e804",
+		"name": "W6_AuthAPICollection_26100547",
+		"description": "Postman Collection for Week 6 Authentication & Security. Includes user registration, login (with test script to store JWT as environment variable), and protected endpoints accessing products and running shelf life analysis using the JWT.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Register User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"Bhavya Gogia\",\n    \"email\": \"bhavya@gmail.com\",\n    \"password\": \"bhavya\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5050/api/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Login User (Saves JWT)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.success && jsonData.token) {",
+							"    pm.environment.set(\"jwt_token\", jsonData.token);",
+							"    console.log(\"JWT token saved to environment variable 'jwt_token'\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"bhavya@gmail.com\",\n    \"password\": \"bhavya\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5050/api/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. GET Protected Products List",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5050/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. POST Protected AI Shelf Life Analysis",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"productIdentity\": {\n        \"productId\": \"6a3d0fa583578c5ba934216a\",\n        \"productName\": \"Traditional Mango Pickle\",\n        \"sku\": \"HS-MNG-PCK-01\",\n        \"category\": \"pickle\",\n        \"batchReference\": \"BATCH-POSTMAN\",\n        \"analysisDate\": \"2026-07-12\"\n    },\n    \"sourcing\": {\n        \"primaryIngredient\": \"raw_mango\",\n        \"farmerName\": \"Highland Farms\",\n        \"village\": \"Joshimath\",\n        \"district\": \"Chamoli\",\n        \"altitudeMetres\": 1600,\n        \"harvestDate\": \"2026-07-10\",\n        \"transportDistanceKm\": 8,\n        \"storageBeforeDelivery\": \"same_day\"\n    },\n    \"ingredients\": {\n        \"saltPercent\": 12,\n        \"oilPercent\": 18,\n        \"moisturePercent\": 14,\n        \"waterActivity\": \"below_0_80\",\n        \"vinegarPercent\": 3,\n        \"sugarPercent\": 2,\n        \"turmericPercent\": 1.5,\n        \"otherSpices\": \"fenugreek, mustard, fennel\"\n    },\n    \"processing\": {\n        \"method\": \"sun_dried\",\n        \"durationValue\": 4,\n        \"durationUnit\": \"days\",\n        \"temperatureCelsius\": 32,\n        \"heatTreatedBeforeSealing\": false,\n        \"phLevel\": \"below_3_5\"\n    },\n    \"packaging\": {\n        \"packagingType\": \"glass_jar\",\n        \"isAirtight\": true,\n        \"sealedStorageCondition\": \"room_temp_dry\",\n        \"afterOpeningStorage\": \"refrigerated\",\n        \"storageHumidity\": \"moderate\",\n        \"distributionChannels\": [\n            \"Retail Stores\",\n            \"Online\"\n        ]\n    },\n    \"notes\": {\n        \"staffObservations\": \"Perfect moisture reduction via sun-drying.\",\n        \"knownIssues\": []\n    }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5050/api/shelf-life/analyse",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"api",
+						"shelf-life",
+						"analyse"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
