@@ -28,6 +28,20 @@ const AnalysisSchema = new mongoose.Schema({
     type: String,
     enum: ['LOW', 'MEDIUM', 'HIGH'],
     default: null
+  },
+  status: {
+    type: String,
+    enum: ['pending_qa', 'approved', 'rejected'],
+    default: 'approved'
+  },
+  storageZone: {
+    type: String,
+    default: 'Unassigned'
+  },
+  dispatchStatus: {
+    type: String,
+    enum: ['in_storage', 'dispatched'],
+    default: 'in_storage'
   }
 }, { timestamps: true });
 

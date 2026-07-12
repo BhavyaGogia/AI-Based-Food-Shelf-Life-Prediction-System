@@ -8,19 +8,42 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
   hashedPassword: {
     type: String,
-    required: true
+    required: false
   },
   role: {
     type: String,
     required: true,
-    enum: ['production_staff', 'lab_admin'],
-    default: 'production_staff'
+    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'admin'],
+    default: 'unassigned'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'pending_approval', 'suspended', 'rejected'],
+    default: 'active'
+  },
+  requestedRole: {
+    type: String,
+    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'admin'],
+    default: 'unassigned'
   }
 }, { timestamps: true });
 
 UserSchema.methods.matchPassword = async function(enteredPassword) {
+  if (!this.hashedPassword) return false;
   return await bcrypt.compare(enteredPassword, this.hashedPassword);
 };
 

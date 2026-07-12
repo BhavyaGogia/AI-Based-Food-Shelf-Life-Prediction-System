@@ -8,30 +8,46 @@ const mongoose = require('mongoose');
 exports.analyseAndStore = async (req, res, next) => {
   try {
     const formData = req.body;
+
+    let productId = formData.productIdentity?.productId;
+
+    // If productId is missing or not a valid ObjectId, try to look up by name
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+      const productName = formData.productIdentity?.productName;
+      if (productName) {
+        const product = await Product.findOne({ productName: { $regex: new RegExp(`^${productName}$`, 'i') } });
+        if (product) {
+          productId = product._id;
+        }
+      }
+      // Final fallback: pick first active product if still unresolved
+      if (!productId) {
+        const product = await Product.findOne({ isActive: true });
+        productId = product ? product._id : new mongoose.Types.ObjectId();
+      }
+    }
+
     const prompt = buildShelfLifePrompt(formData);
     const analysisResult = await analyseShelfLife(prompt);
 
-    let productId = formData.productIdentity?.productId;
-    // Fallback if frontend doesn't send a valid object id
-    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-        const product = await Product.findOne();
-        productId = product ? product._id : new mongoose.Types.ObjectId();
-    }
-
     const analysis = new Analysis({
       productId: productId,
-      batchReference: formData.productIdentity?.batchNumber || 'UNKNOWN-BATCH',
+      batchReference: formData.productIdentity?.batchReference || formData.productIdentity?.batchNumber || 'BATCH',
       formSnapshot: formData,
       geminiResult: analysisResult,
       predictedShelfLifeDays: analysisResult.predictedShelfLifeDays,
-      riskLevel: analysisResult.riskLevel
+      riskLevel: analysisResult.riskLevel,
+      status: 'approved'
     });
 
     await analysis.save();
 
+    // Re-fetch with populate so response includes productName
+    const populated = await Analysis.findById(analysis._id).populate('productId');
+
     res.status(200).json({
       success: true,
-      data: analysisResult
+      data: populated
     });
   } catch (err) {
     next(err);
@@ -114,12 +130,26 @@ exports.prefetchAll = async (req, res, next) => {
     setTimeout(async () => {
       for (const product of products) {
          try {
-           const prompt = `Simulate prefetch analysis for product ${product.productName}`;
+           const mockFormData = {
+             productIdentity: {
+               productId: product._id,
+               productName: product.productName,
+               sku: product.sku,
+               category: product.category,
+               batchReference: 'PREFETCH',
+               analysisDate: new Date().toISOString().split('T')[0]
+             },
+             sourcing: { primaryIngredient: 'raw_mango', storageBeforeDelivery: 'one_to_two_days' },
+             ingredients: { saltPercent: 10, oilPercent: 20, moisturePercent: 15, waterActivity: 'not_sure' },
+             processing: { method: 'raw', phLevel: 'below_3_5' },
+             packaging: { packagingType: 'glass_jar', isAirtight: true, sealedStorageCondition: 'room_temp_dry', afterOpeningStorage: 'refrigerated' }
+           };
+           const prompt = buildShelfLifePrompt(mockFormData);
            const result = await analyseShelfLife(prompt);
            await Analysis.create({
              productId: product._id,
              batchReference: 'PREFETCH',
-             formSnapshot: { note: 'prefetch' },
+             formSnapshot: mockFormData,
              geminiResult: result,
              predictedShelfLifeDays: result.predictedShelfLifeDays,
              riskLevel: result.riskLevel
@@ -134,6 +164,92 @@ exports.prefetchAll = async (req, res, next) => {
       success: true,
       message: `Prefetch started for ${products.length} products.`
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/shelf-life/approve/:id
+exports.approveBatch = async (req, res, next) => {
+  try {
+    const analysis = await Analysis.findById(req.params.id);
+    if (!analysis) {
+      return res.status(404).json({ success: false, error: 'Batch analysis not found' });
+    }
+
+    if (analysis.status !== 'pending_qa') {
+      return res.status(400).json({ success: false, error: 'Batch is not pending QA approval' });
+    }
+
+    const prompt = buildShelfLifePrompt(analysis.formSnapshot);
+    const analysisResult = await analyseShelfLife(prompt);
+
+    analysis.geminiResult = analysisResult;
+    analysis.predictedShelfLifeDays = analysisResult.predictedShelfLifeDays;
+    analysis.riskLevel = analysisResult.riskLevel;
+    analysis.status = 'approved';
+
+    await analysis.save();
+
+    res.status(200).json({
+      success: true,
+      data: analysis
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/shelf-life/reject/:id
+exports.rejectBatch = async (req, res, next) => {
+  try {
+    const analysis = await Analysis.findById(req.params.id);
+    if (!analysis) {
+      return res.status(404).json({ success: false, error: 'Batch analysis not found' });
+    }
+
+    analysis.status = 'rejected';
+    await analysis.save();
+
+    res.status(200).json({
+      success: true,
+      data: analysis
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/shelf-life/dispatch/:id
+exports.dispatchBatch = async (req, res, next) => {
+  try {
+    const analysis = await Analysis.findById(req.params.id);
+    if (!analysis) {
+      return res.status(404).json({ success: false, error: 'Batch not found' });
+    }
+
+    analysis.dispatchStatus = 'dispatched';
+    await analysis.save();
+
+    res.status(200).json({ success: true, data: analysis });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/shelf-life/storage/:id
+exports.updateStorageZone = async (req, res, next) => {
+  try {
+    const { storageZone } = req.body;
+    const analysis = await Analysis.findById(req.params.id);
+    if (!analysis) {
+      return res.status(404).json({ success: false, error: 'Batch not found' });
+    }
+
+    analysis.storageZone = storageZone || 'Unassigned';
+    await analysis.save();
+
+    res.status(200).json({ success: true, data: analysis });
   } catch (err) {
     next(err);
   }
