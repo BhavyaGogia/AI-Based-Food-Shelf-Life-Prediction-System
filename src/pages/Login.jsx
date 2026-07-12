@@ -8,9 +8,12 @@ import CosmicCanvas from '../components/CosmicCanvas'
 export default function Login() {
   const mainRef = useRef(null)
   const navigate = useNavigate()
-  const { login, isAuthenticated } = useAuth()
+  const { login, register, googleLogin, isAuthenticated } = useAuth()
   
+  const [isLoginMode, setIsLoginMode] = useState(true)
+  const [showEmailForm, setShowEmailForm] = useState(false)
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -25,28 +28,35 @@ export default function Login() {
   const handleManualSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const result = await login(username, password)
+    
+    let result;
+    if (isLoginMode) {
+      result = await login(email, password)
+    } else {
+      result = await register(username, email, password)
+    }
+
     if (result.success) {
+      // If success, checks role in useEffect/ProtectedRoute to direct to /onboarding if needed
       navigate('/dashboard')
     } else {
-      setError(result.error || 'Login failed')
+      setError(result.error || `${isLoginMode ? 'Login' : 'Registration'} failed`)
     }
   }
 
   const handleQuickLogin = async (role) => {
     setError('')
-    // We seeded the DB with 'staff' and 'admin' with password 'himshakti123'
     const userMap = {
-      'production_staff': { u: 'staff', p: 'himshakti123' },
-      'lab_admin': { u: 'admin', p: 'himshakti123' }
+      'production_staff': { e: 'staff@himshakti.com', p: 'himshakti123' },
+      'lab_admin': { e: 'admin@himshakti.com', p: 'himshakti123' }
     }
     const creds = userMap[role]
     if (creds) {
-      const result = await login(creds.u, creds.p)
+      const result = await login(creds.e, creds.p)
       if (result.success) {
         navigate('/dashboard')
       } else {
-        setError(result.error || 'Quick login failed')
+        setError(result.error || 'Quick login failed. Did you seed the database with emails?')
       }
     }
   }
@@ -74,9 +84,8 @@ export default function Login() {
 
       <main className="flex-grow flex relative overflow-hidden pt-24 z-10" ref={mainRef}>
         
-        {/* Left Side: Brand Story (Gradient Split) */}
+        {/* Left Side: Brand Story */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-transparent p-20 flex-col justify-center text-slate-900 dark:text-white overflow-hidden border-r border-slate-200/20 dark:border-white/5 transition-colors duration-500">
-          {/* Ambient glows */}
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 dark:bg-neon/5 blur-[150px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 dark:bg-violet/5 blur-[150px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
           
@@ -96,15 +105,6 @@ export default function Login() {
             <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed mb-12 font-medium">
               Access the HimShakti AI dashboard to predict shelf life, manage ingredient quality, and optimize your production lines with absolute precision.
             </p>
-            
-            <div className="flex items-center gap-6 text-slate-700 dark:text-slate-300 text-sm font-bold tracking-wide">
-              <div className="flex -space-x-4">
-                <div className="w-12 h-12 rounded-2xl border-2 border-white dark:border-dark-950 bg-gradient-to-br from-emerald-600 to-teal-400 dark:from-neon dark:to-teal-400 flex items-center justify-center font-extrabold text-white dark:text-dark-950 shadow-sm">HS</div>
-                <div className="w-12 h-12 rounded-2xl border-2 border-white dark:border-dark-950 bg-gradient-to-br from-blue-600 to-indigo-500 dark:from-violet dark:to-purple-400 flex items-center justify-center font-extrabold text-white shadow-sm">AI</div>
-                <div className="w-12 h-12 rounded-2xl border-2 border-white dark:border-dark-950 bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center font-extrabold text-white dark:text-dark-950 shadow-sm">Lab</div>
-              </div>
-              <p>Join our team of elite food scientists</p>
-            </div>
           </div>
         </div>
 
@@ -112,116 +112,160 @@ export default function Login() {
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-20 bg-transparent relative z-10 transition-colors duration-500">
           <div className="w-full max-w-md reveal-right">
             
-            <div className="mb-10 lg:hidden text-center">
-              <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-black/10 dark:border-white/15 shadow-inner">
-                🌾
-              </div>
-              <h2 className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white">Staff Login</h2>
-            </div>
-            
-            <div className="hidden lg:block mb-10">
-              <h2 className="font-heading font-extrabold text-4xl text-slate-900 dark:text-white">Sign In</h2>
-              <p className="text-slate-600 dark:text-slate-400 mt-3 text-lg font-medium">Enter your credentials to continue</p>
+            <div className="mb-10 text-center lg:text-left">
+              <h2 className="font-heading font-extrabold text-4xl text-slate-900 dark:text-white">
+                Access Portal
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 mt-3 text-lg font-medium">
+                Sign in to manage and predict shelf life
+              </p>
             </div>
 
-            {/* Quick Demo Login Cards */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <button onClick={() => handleQuickLogin('production_staff')} className="group flex flex-col items-center justify-center p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/10 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-white/10 transition-all shadow-sm hover:border-emerald-500/40 dark:hover:border-neon/40 backdrop-blur-md">
-                <div className="w-12 h-12 mb-2 rounded-full bg-emerald-100 dark:bg-white/10 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
-                  🏭
-                </div>
-                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Staff Login</span>
-                <span className="text-[10px] text-slate-500 mt-1">Run Analysis Only</span>
-              </button>
+            {error && (
+              <div className="p-3 mb-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm text-center">
+                {error}
+              </div>
+            )}
 
-              <button onClick={() => handleQuickLogin('lab_admin')} className="group flex flex-col items-center justify-center p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/10 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-white/10 transition-all shadow-sm hover:border-blue-500/40 dark:hover:border-neon/40 backdrop-blur-md">
-                <div className="w-12 h-12 mb-2 rounded-full bg-blue-100 dark:bg-white/10 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
-                  👩‍🔬
-                </div>
-                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Admin Login</span>
-                <span className="text-[10px] text-slate-500 mt-1">Full DB Access</span>
-              </button>
+            {/* Google OAuth Hero Button */}
+            <div className="mb-6 w-full flex justify-center">
+              <div className="w-full shadow-lg rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform duration-300">
+                <GoogleLoginWrapper onSuccess={async (res) => {
+                  if (res.credential) {
+                     const apiRes = await googleLogin(res.credential);
+                     if (apiRes.success) navigate('/dashboard');
+                     else setError(apiRes.error);
+                  }
+                }} onError={() => setError('Google Login Failed')} />
+              </div>
             </div>
 
-            <div className="relative flex items-center py-6">
-              <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
-              <span className="flex-shrink-0 mx-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Or continue with</span>
-              <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
-            </div>
-
-            <form id="login-form" onSubmit={handleManualSubmit} className="space-y-6 mt-4">
-              
-              {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm text-center">
-                  {error}
-                </div>
-              )}
-
-              {/* Floating Label Username Input */}
-              <div className="relative group">
-                <input
-                  id="login-username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="peer w-full px-5 pt-7 pb-3 rounded-2xl border border-slate-300 dark:border-white/15 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-neon/50 focus:border-emerald-600 dark:focus:border-neon text-slate-900 dark:text-white transition-all shadow-sm dark:shadow-glass placeholder-transparent"
-                  placeholder="Username"
-                  autoComplete="username"
-                  required
-                />
-                <label htmlFor="login-username" className="absolute left-5 top-3 text-xs font-bold text-slate-500 dark:text-slate-400 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-focus:top-3 peer-focus:text-xs peer-focus:text-emerald-600 dark:peer-focus:text-neon pointer-events-none">
-                  Username or Staff ID
-                </label>
-              </div>
-
-              {/* Floating Label Password Input */}
-              <div className="relative group">
-                <input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="peer w-full px-5 pt-7 pb-3 pr-12 rounded-2xl border border-slate-300 dark:border-white/15 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-neon/50 focus:border-emerald-600 dark:focus:border-neon text-slate-900 dark:text-white transition-all shadow-sm dark:shadow-glass placeholder-transparent"
-                  placeholder="Password"
-                  autoComplete="current-password"
-                  required
-                />
-                <label htmlFor="login-password" className="absolute left-5 top-3 text-xs font-bold text-slate-500 dark:text-slate-400 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-focus:top-3 peer-focus:text-xs peer-focus:text-emerald-600 dark:peer-focus:text-neon pointer-events-none">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 dark:hover:text-neon transition-colors"
-                  aria-label="Toggle password visibility"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  )}
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <a href="#" className="font-bold text-sm text-emerald-600 dark:text-neon hover:underline transition-colors">Forgot password?</a>
-              </div>
-
+            {/* Direct Switch/Onboarding Link */}
+            <div className="text-center mt-4 mb-6">
+              <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                {isLoginMode ? "Don't have an account? " : "Already have an account? "}
+              </span>
               <button
-                id="login-submit"
-                type="submit"
-                className="btn-primary w-full py-5 text-xl mt-4 shadow-md dark:shadow-glow hover:scale-105"
+                type="button"
+                onClick={() => {
+                  const newMode = !isLoginMode;
+                  setIsLoginMode(newMode);
+                  if (!newMode) {
+                    setShowEmailForm(true); // auto-expand to show fields when registering
+                  }
+                }}
+                className="text-sm font-bold text-emerald-600 dark:text-neon hover:underline focus:outline-none"
               >
-                Access Dashboard
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
+                {isLoginMode ? 'Register here' : 'Sign In'}
               </button>
-            </form>
+            </div>
+
+            {isLoginMode && (
+              <div className="relative flex items-center py-2 mb-4">
+                <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+                <button 
+                  onClick={() => setShowEmailForm(!showEmailForm)}
+                  className="flex-shrink-0 mx-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-neon transition-colors focus:outline-none"
+                >
+                  {showEmailForm ? 'Hide email sign in ↑' : 'Or sign in with email instead ↓'}
+                </button>
+                <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+              </div>
+            )}
+
+            {/* Collapsible Email/Password & Registration Form */}
+            {showEmailForm && (
+              <div className="space-y-6 transition-all duration-500 ease-in-out">
+                
+                <form id="auth-form" onSubmit={handleManualSubmit} className="space-y-4">
+                  {!isLoginMode && (
+                    <div className="relative group">
+                      <input
+                        id="auth-username"
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="peer w-full px-5 pt-6 pb-2 rounded-xl border border-slate-300 dark:border-white/15 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-neon/50 focus:border-emerald-600 dark:focus:border-neon text-slate-900 dark:text-white transition-all placeholder-transparent"
+                        placeholder="Username"
+                        required={!isLoginMode}
+                      />
+                      <label htmlFor="auth-username" className="absolute left-5 top-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 transition-all peer-placeholder-shown:top-4.5 peer-placeholder-shown:text-sm peer-focus:top-2.5 peer-focus:text-xs peer-focus:text-emerald-600 dark:peer-focus:text-neon pointer-events-none">
+                        Username
+                      </label>
+                    </div>
+                  )}
+
+                  <div className="relative group">
+                    <input
+                      id="auth-email"
+                      type="text"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="peer w-full px-5 pt-6 pb-2 rounded-xl border border-slate-300 dark:border-white/15 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-neon/50 focus:border-emerald-600 dark:focus:border-neon text-slate-900 dark:text-white transition-all placeholder-transparent"
+                      placeholder="Email"
+                      autoComplete="email"
+                      required
+                    />
+                    <label htmlFor="auth-email" className="absolute left-5 top-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 transition-all peer-placeholder-shown:top-4.5 peer-placeholder-shown:text-sm peer-focus:top-2.5 peer-focus:text-xs peer-focus:text-emerald-600 dark:peer-focus:text-neon pointer-events-none">
+                      Email
+                    </label>
+                  </div>
+
+                  <div className="relative group">
+                    <input
+                      id="auth-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="peer w-full px-5 pt-6 pb-2 pr-12 rounded-xl border border-slate-300 dark:border-white/15 bg-white/10 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 dark:focus:ring-neon/50 focus:border-emerald-600 dark:focus:border-neon text-slate-900 dark:text-white transition-all placeholder-transparent"
+                      placeholder="Password"
+                      autoComplete={isLoginMode ? "current-password" : "new-password"}
+                      required
+                    />
+                    <label htmlFor="auth-password" className="absolute left-5 top-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 transition-all peer-placeholder-shown:top-4.5 peer-placeholder-shown:text-sm peer-focus:top-2.5 peer-focus:text-xs peer-focus:text-emerald-600 dark:peer-focus:text-neon pointer-events-none">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 hover:text-emerald-600 dark:hover:text-neon transition-colors"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="btn-primary w-full py-4 text-lg mt-4 shadow-md dark:shadow-glow hover:scale-[1.02]"
+                  >
+                    {isLoginMode ? 'Sign In' : 'Create Account'}
+                  </button>
+                </form>
+              </div>
+            )}
+
           </div>
         </div>
       </main>
-
       <Footer />
+    </div>
+  )
+}
+
+import { GoogleLogin } from '@react-oauth/google';
+
+function GoogleLoginWrapper({ onSuccess, onError }) {
+  return (
+    <div className="w-full flex justify-center">
+      <GoogleLogin 
+        onSuccess={onSuccess} 
+        onError={onError} 
+        useOneTap
+        shape="pill"
+        size="large"
+        width="384px"
+        theme="filled_blue"
+      />
     </div>
   )
 }

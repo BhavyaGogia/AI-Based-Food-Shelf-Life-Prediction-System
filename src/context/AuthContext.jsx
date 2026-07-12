@@ -7,60 +7,153 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
+  const [status, setStatus] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check sessionStorage on mount
-    const storedUser = sessionStorage.getItem('himshakti_user');
-    if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      setRole(parsed.role);
-      setIsAuthenticated(true);
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.data);
+        setRole(data.data.role);
+        setStatus(data.data.status);
+        setIsAuthenticated(true);
+        return data;
+      } else {
+        setUser(null);
+        setRole(null);
+        setStatus(null);
+        setIsAuthenticated(false);
+      }
+    } catch (err) {
+      console.error('Failed to restore session', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  useEffect(() => {
+    checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const res = await fetch('http://localhost:5050/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       
       if (data.success) {
         setUser(data.data);
         setRole(data.data.role);
+        setStatus(data.data.status);
         setIsAuthenticated(true);
-        sessionStorage.setItem('himshakti_user', JSON.stringify(data.data));
         return { success: true };
       } else {
-        return { success: false, error: data.error };
+        return { success: false, error: data.error || data.errors?.[0]?.msg || 'Login failed' };
       }
     } catch (error) {
       return { success: false, error: 'Server error during login' };
     }
   };
 
+  const register = async (username, email, password) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setUser(data.data);
+        setRole(data.data.role);
+        setStatus(data.data.status);
+        setIsAuthenticated(true);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || data.errors?.[0]?.msg || 'Registration failed' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Server error during registration' };
+    }
+  };
+
+  const googleLogin = async (id_token) => {
+    try {
+      const res = await fetch('/api/auth/google/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id_token })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setUser(data.data);
+        setRole(data.data.role);
+        setStatus(data.data.status);
+        setIsAuthenticated(true);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Google login failed' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Server error during Google login' };
+    }
+  };
+
+  const onboard = async (role) => {
+    try {
+      const res = await fetch('/api/auth/onboard', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setUser(data.data);
+        setRole(data.data.role);
+        setStatus(data.data.status);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Onboarding failed' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Server error during onboarding' };
+    }
+  };
+
   const logout = async () => {
     try {
-      await fetch('http://localhost:5050/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { 
+        method: 'POST',
+        credentials: 'include'
+      });
     } catch (e) {
       console.error(e);
     }
     setUser(null);
     setRole(null);
+    setStatus(null);
     setIsAuthenticated(false);
-    sessionStorage.removeItem('himshakti_user');
   };
 
-  if (loading) return null; // Or a loading spinner
+  if (loading) return <div>Loading...</div>; // Or a loading spinner
 
   return (
-    <AuthContext.Provider value={{ user, role, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, role, status, isAuthenticated, login, register, googleLogin, onboard, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

@@ -12,7 +12,7 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, role, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
@@ -36,6 +36,9 @@ export default function Navbar() {
     ]
     if (isAuthenticated) {
       links.push({ label: 'Dashboard', to: '/dashboard' })
+      if (role === 'admin') {
+        links.push({ label: 'Admin Panel', to: '/admin' })
+      }
       links.push({ label: 'Logout', isAction: true })
     } else {
       links.push({ label: 'Login', to: '/login' })

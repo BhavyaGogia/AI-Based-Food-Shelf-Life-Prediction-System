@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import ResultCard from '../components/ResultCard'
-import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll } from '../api/shelfLife'
+import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll, getHistory, approveBatch, rejectBatch, dispatchBatch, updateStorageZone } from '../api/shelfLife'
 import StarfieldCanvas from '../components/StarfieldCanvas'
 import { useAuth } from '../context/AuthContext'
 
@@ -89,9 +89,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [batchesLoading, setBatchesLoading] = useState(true);
 
   const { role, logout } = useAuth();
-  const isAdmin = role === 'lab_admin';
+  const isAdmin = role === 'admin';
+  const isLabAdmin = role === 'lab_admin' || role === 'admin';
+  const isWarehouse = role === 'warehouse_supervisor' || isLabAdmin;
+  const isStaff = role === 'production_staff' || isLabAdmin;
 
   // Fetch products and calculate initial stats
   const fetchProductsAndStats = () => {
@@ -132,6 +137,19 @@ export default function Dashboard() {
       })
       .finally(() => {
         setProductsLoading(false)
+      })
+
+    getHistory(1, 100)
+      .then(res => {
+        if (res.success) {
+          setBatches(res.data || []);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch batches:', err)
+      })
+      .finally(() => {
+        setBatchesLoading(false)
       })
   };
 
@@ -203,6 +221,7 @@ export default function Dashboard() {
       }));
       setPrefetchResult(null);
       setPrefetchError(null);
+      setResult(null);
       return;
     }
 
@@ -216,6 +235,8 @@ export default function Dashboard() {
         category: product.category
       }
     }));
+
+    setResult(null);
 
     // Trigger prefetch result immediately if in quick view mode
     if (mode === 'quick') {
@@ -253,6 +274,15 @@ export default function Dashboard() {
       const data = await analyseShelfLife(formData);
 
       if (data.success) {
+        if (role === 'production_staff') {
+          setResult({
+            isStaffSubmission: true,
+            message: data.message || 'Batch successfully logged and submitted for QA Review.'
+          });
+          fetchProductsAndStats();
+          return;
+        }
+
         setResult(data.data);
 
         // Dynamically update stats after successful analysis
@@ -407,13 +437,23 @@ export default function Dashboard() {
           <Link to="/about" className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-emerald-700 dark:hover:text-white font-semibold transition-all">
             <span className="text-xl">ℹ️</span> About
           </Link>
+          {role === 'admin' && (
+            <Link to="/admin" className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-700 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 hover:text-emerald-700 dark:hover:text-white font-semibold transition-all">
+              <span className="text-xl">⚙️</span> Admin Panel
+            </Link>
+          )}
         </nav>
         <div className="p-6 m-4 mt-auto bg-black/5 dark:bg-white/5 backdrop-blur-md rounded-2xl flex flex-col gap-4 border border-black/5 dark:border-white/10">
           <div className="flex items-center gap-4">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-500 dark:from-neon dark:to-violet flex items-center justify-center text-white dark:text-dark-950 font-extrabold text-base shadow-sm dark:shadow-glow">HS</div>
             <div className="text-sm">
-              <p className="font-bold text-slate-900 dark:text-white">{isAdmin ? 'Admin Portal' : 'Staff Portal'}</p>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">{isAdmin ? 'Full Access' : 'AI Production'}</p>
+              <p className="font-bold text-slate-900 dark:text-white capitalize">{role?.replace('_', ' ')}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">
+                {role === 'admin' ? 'System Owner' : 
+                 role === 'lab_admin' ? 'Full Access' : 
+                 role === 'qa_inspector' ? 'Quality Controller' : 
+                 role === 'warehouse_supervisor' ? 'Inventory Control' : 'AI Production'}
+              </p>
             </div>
           </div>
           <button onClick={logout} className="w-full py-2 px-4 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-semibold text-sm rounded-xl transition-colors text-center border border-rose-100 dark:border-rose-900/30">
@@ -440,7 +480,7 @@ export default function Dashboard() {
 
         <div className="p-8 max-w-7xl mx-auto w-full">
 
-          {isAdmin && (
+          {isLabAdmin && (
             <>
               {/* Dynamic Stats Cards (Actionable Workflow) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -501,74 +541,95 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-
-              {/* Product Inventory Table */}
-              <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
-                <div className="p-8 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Product Inventory</h3>
-                </div>
-                <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="sticky top-0 z-10">
-                      <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
-                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
-                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">SKU</th>
-                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Category</th>
-                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Shelf Life (Days)</th>
-                        <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map((p, i) => {
-                        let status = 'AI: Low Risk';
-                        let statusPill = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-                        
-                        if (!p.predictedShelfLifeDays) {
-                          status = 'Not analysed yet';
-                          statusPill = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-                        } else if (p.riskLevel === 'HIGH') {
-                          status = 'High Risk';
-                          statusPill = 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800';
-                        } else if (p.riskLevel === 'MEDIUM') {
-                          status = 'Medium Risk';
-                          statusPill = 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-                        }
-
-                        const displayDays = p.predictedShelfLifeDays || p.baseShelfLifeDays;
-                        const isBaseOnly = !p.predictedShelfLifeDays;
-
-                        return (
-                          <tr key={p._id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                            <td className="py-4 px-8 font-semibold text-slate-800 dark:text-slate-200">{p.productName}</td>
-                            <td className="py-4 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium">{p.sku}</td>
-                            <td className="py-4 px-8 text-slate-500 dark:text-slate-400 text-sm font-medium capitalize">{p.category}</td>
-                            <td className="py-4 px-8">
-                              <span className="font-bold text-slate-800 dark:text-slate-200">{displayDays}</span>
-                              <span className="font-normal text-slate-500 text-xs ml-1">days</span>
-                            </td>
-                            <td className="py-4 px-8">
-                              <span className={`px-3 py-1 text-xs font-bold rounded-full border shadow-sm whitespace-nowrap ${statusPill}`}>{status}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {products.length === 0 && (
-                        <tr>
-                          <td colSpan="4" className="py-8 text-center text-slate-500">No predictions run yet.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </>
           )}
 
 
+          {isWarehouse && (
+            <div className="glass-panel bg-white dark:bg-slate-900 p-0 overflow-hidden mb-12 reveal border border-emerald-100 dark:border-slate-800">
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="font-heading font-bold text-xl text-slate-800 dark:text-slate-100">Product Inventory (Warehouse Stock)</h3>
+              </div>
+              <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-emerald-50/50 dark:bg-slate-800/50 text-emerald-800 dark:text-emerald-400 border-b border-emerald-100 dark:border-slate-800">
+                      <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Product</th>
+                      <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Shelf Life (Days)</th>
+                      <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Risk Level</th>
+                      <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Storage Zone</th>
+                      <th className="py-4 px-8 font-semibold text-sm uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {batches.filter(b => b.status === 'approved' && b.dispatchStatus !== 'dispatched').map((b) => {
+                      let status = b.riskLevel === 'HIGH' ? 'High Risk' : b.riskLevel === 'MEDIUM' ? 'Medium Risk' : 'Low Risk';
+                      let statusPill = b.riskLevel === 'HIGH' 
+                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 border-rose-200 dark:border-rose-800' 
+                        : b.riskLevel === 'MEDIUM' 
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 border-amber-200 dark:border-amber-800' 
+                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
 
+                      return (
+                        <tr key={b._id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="py-4 px-8 font-semibold text-slate-800 dark:text-slate-200">{b.productId?.productName || b.formSnapshot?.productIdentity?.productName || 'Unknown Product'}</td>
+                          <td className="py-4 px-8">
+                            <span className="font-bold text-slate-800 dark:text-slate-200">{b.predictedShelfLifeDays}</span>
+                            <span className="font-normal text-slate-500 text-xs ml-1">days</span>
+                          </td>
+                          <td className="py-4 px-8">
+                            <span className={`px-3 py-1 text-xs font-bold rounded-full border shadow-sm whitespace-nowrap ${statusPill}`}>{status}</span>
+                          </td>
+                          <td className="py-4 px-8">
+                            {role === 'warehouse_supervisor' || isLabAdmin ? (
+                              <select
+                                value={b.storageZone || 'Unassigned'}
+                                onChange={async (e) => {
+                                  await updateStorageZone(b._id, e.target.value);
+                                  fetchProductsAndStats();
+                                }}
+                                className="bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs focus:outline-none text-white focus:border-emerald-500"
+                              >
+                                <option value="Unassigned">Unassigned</option>
+                                <option value="Zone A">Zone A (Dry)</option>
+                                <option value="Zone B">Zone B (Spices)</option>
+                                <option value="Cold Room 1">Cold Room 1 (Chilled)</option>
+                              </select>
+                            ) : (
+                              <span className="text-slate-400 text-sm">{b.storageZone || 'Unassigned'}</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-8">
+                            {role === 'warehouse_supervisor' || isLabAdmin ? (
+                              <button
+                                onClick={async () => {
+                                  await dispatchBatch(b._id);
+                                  fetchProductsAndStats();
+                                }}
+                                className="px-3 py-1 bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/35 rounded-lg text-xs font-bold transition-all"
+                              >
+                                Dispatch
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-xs font-medium">In Storage</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {batches.filter(b => b.status === 'approved' && b.dispatchStatus !== 'dispatched').length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="py-8 text-center text-slate-500">No active stock in warehouse.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {isStaff && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
             {/* Quick Analysis Mode Layout */}
             {mode === 'quick' && (
@@ -979,8 +1040,15 @@ export default function Dashboard() {
 
             {/* Results Display Area (Shared across both modes) */}
             <div className="lg:col-span-5">
-              {result ? (
-                <ResultCard result={result} />
+              {(result || prefetchResult) ? (
+                (result || prefetchResult).isStaffSubmission ? (
+                  <div className="glass-panel p-8 border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 animate-fade-up">
+                    <h3 className="text-xl font-bold text-emerald-800 dark:text-emerald-400 mb-2">✅ Success</h3>
+                    <p className="text-emerald-700 dark:text-emerald-300">{(result || prefetchResult).message}</p>
+                  </div>
+                ) : (
+                  <ResultCard result={(result || prefetchResult).geminiResult || (result || prefetchResult)} />
+                )
               ) : (
                 <div className="glass-card p-12 text-center border-dashed border-2 border-slate-300 dark:border-slate-800 flex flex-col items-center justify-center min-h-[300px]">
                   <p className="text-5xl mb-4 opacity-75">🔬</p>
@@ -995,6 +1063,7 @@ export default function Dashboard() {
             </div>
 
           </div>
+          )}
 
         </div>
       </main>

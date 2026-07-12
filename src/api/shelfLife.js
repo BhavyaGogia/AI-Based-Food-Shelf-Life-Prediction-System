@@ -55,3 +55,32 @@ export const prefetchAll = async () => {
   const res = await fetch('/api/shelf-life/prefetch-all', { method: 'POST' });
   return res.json();
 };
+
+export async function getHistory(page = 1, limit = 100) {
+  const res = await fetch(`/api/shelf-life/history?page=${page}&limit=${limit}`);
+  return res.json();
+}
+
+export async function approveBatch(id) {
+  const res = await fetch(`/api/shelf-life/approve/${id}`, { method: 'PUT' });
+  return res.json();
+}
+
+export async function rejectBatch(id) {
+  const res = await fetch(`/api/shelf-life/reject/${id}`, { method: 'PUT' });
+  return res.json();
+}
+
+export async function dispatchBatch(id) {
+  const res = await fetch(`/api/shelf-life/dispatch/${id}`, { method: 'PUT' });
+  return res.json();
+}
+
+export async function updateStorageZone(id, storageZone) {
+  const res = await fetch(`/api/shelf-life/storage/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ storageZone })
+  });
+  return res.json();
+}
