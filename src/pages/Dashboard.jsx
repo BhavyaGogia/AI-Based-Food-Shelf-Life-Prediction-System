@@ -4,6 +4,9 @@ import { useTheme } from '../context/ThemeContext'
 import ResultCard from '../components/ResultCard'
 import { getProducts, getStats, analyseShelfLife, getPrefetchResult, prefetchAll, getHistory, approveBatch, rejectBatch, dispatchBatch, updateStorageZone } from '../api/shelfLife'
 import StarfieldCanvas from '../components/StarfieldCanvas'
+import EmptyState from '../components/EmptyState'
+import Toast from '../components/ui/Toast'
+import Loader from '../components/ui/Loader'
 import { useAuth } from '../context/AuthContext'
 
 export default function Dashboard() {
@@ -89,6 +92,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showToast, setShowToast] = useState(false);
   const [batches, setBatches] = useState([]);
   const [batchesLoading, setBatchesLoading] = useState(true);
 
@@ -96,7 +100,7 @@ export default function Dashboard() {
   const isAdmin = role === 'admin';
   const isLabAdmin = role === 'lab_admin' || role === 'admin';
   const isWarehouse = role === 'warehouse_supervisor' || isLabAdmin;
-  const isStaff = role === 'production_staff' || isLabAdmin;
+  const isStaff = true; // Allow all authenticated roles to run AI Analysis form
 
   // Fetch products and calculate initial stats
   const fetchProductsAndStats = () => {
@@ -269,6 +273,7 @@ export default function Dashboard() {
 
     setLoading(true);
     setError(null);
+    setResult(null);
 
     try {
       const data = await analyseShelfLife(formData);
@@ -331,7 +336,9 @@ export default function Dashboard() {
         throw new Error(data.error || 'Analysis failed');
       }
     } catch (err) {
-      setError(err.message);
+      console.error("Analyse error:", err);
+      setError(err.message || 'An error occurred during analysis.');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -619,7 +626,13 @@ export default function Dashboard() {
                     })}
                     {batches.filter(b => b.status === 'approved' && b.dispatchStatus !== 'dispatched').length === 0 && (
                       <tr>
-                        <td colSpan="5" className="py-8 text-center text-slate-500">No active stock in warehouse.</td>
+                        <td colSpan="5" className="py-4 px-4">
+                          <EmptyState
+                            icon="📦"
+                            title="No Active Warehouse Stock"
+                            message="There are currently no approved product batches waiting in storage."
+                          />
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -1064,6 +1077,13 @@ export default function Dashboard() {
 
           </div>
           )}
+
+          <Toast
+            isVisible={showToast}
+            message={error || 'An error occurred during analysis.'}
+            type="error"
+            onClose={() => setShowToast(false)}
+          />
 
         </div>
       </main>
