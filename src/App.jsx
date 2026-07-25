@@ -10,6 +10,7 @@ import Profile from './pages/Profile'
 import Onboarding from './pages/Onboarding'
 import PendingApproval from './pages/PendingApproval'
 import AdminPanel from './pages/AdminPanel'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, role, status } = useAuth();
@@ -33,34 +34,36 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '123456789-pla
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/pending" element={<PendingApproval />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/ui-showcase" element={<UIShowcase />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    <ErrorBoundary>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/pending" element={<PendingApproval />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/ui-showcase" element={<UIShowcase />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </GoogleOAuthProvider>
+    </ErrorBoundary>
   )
 }
