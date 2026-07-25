@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CosmicCanvas from '../components/CosmicCanvas';
+import EmptyState from '../components/EmptyState';
 import { Navigate } from 'react-router-dom';
 
 export default function AdminPanel() {
@@ -114,7 +115,11 @@ export default function AdminPanel() {
               <div className="space-y-6">
                 <h2 className="text-xl font-bold mb-4">Pending Approvals</h2>
                 {pendingUsers.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">No pending access requests.</div>
+                  <EmptyState
+                    icon="👥"
+                    title="No Pending Requests"
+                    message="All access requests have been reviewed and processed."
+                  />
                 ) : (
                   <div className="relative border-l border-white/10 ml-4 space-y-8 pl-8">
                     {pendingUsers.map(u => (
