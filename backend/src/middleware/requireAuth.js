@@ -30,7 +30,8 @@ const requireAuth = async (req, res, next) => {
       });
     }
 
-    if (user.status !== 'active') {
+    // Block suspended/rejected accounts but allow active and pending_approval (for onboarding)
+    if (user.status === 'suspended' || user.status === 'rejected') {
       return res.status(403).json({
         success: false,
         error: 'Your account access has been suspended or rejected.'
