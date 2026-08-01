@@ -1,3 +1,5 @@
+import { API_BASE } from '../lib/api';
+
 /**
  * Fetch products from the backend database.
  * Supports query params like limit.
@@ -6,7 +8,7 @@
  */
 export async function getProducts(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const url = `/api/products${query ? `?${query}` : ''}`;
+  const url = `${API_BASE}/api/products${query ? `?${query}` : ''}`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -19,7 +21,7 @@ export async function getProducts(params = {}) {
  * @returns {Promise<Object>} API response.
  */
 export async function getStats() {
-  const response = await fetch('/api/stats');
+  const response = await fetch(`${API_BASE}/api/stats`);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -32,7 +34,7 @@ export async function getStats() {
  * @returns {Promise<Object>} API response.
  */
 export async function analyseShelfLife(formData) {
-  const response = await fetch('/api/shelf-life/analyse', {
+  const response = await fetch(`${API_BASE}/api/shelf-life/analyse`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,37 +49,37 @@ export async function analyseShelfLife(formData) {
 }
 
 export const getPrefetchResult = async (productId) => {
-  const res = await fetch(`/api/shelf-life/prefetch/${productId}`);
+  const res = await fetch(`${API_BASE}/api/shelf-life/prefetch/${productId}`);
   return res.json();
 };
 
 export const prefetchAll = async () => {
-  const res = await fetch('/api/shelf-life/prefetch-all', { method: 'POST' });
+  const res = await fetch(`${API_BASE}/api/shelf-life/prefetch-all`, { method: 'POST' });
   return res.json();
 };
 
 export async function getHistory(page = 1, limit = 100) {
-  const res = await fetch(`/api/shelf-life/history?page=${page}&limit=${limit}`);
+  const res = await fetch(`${API_BASE}/api/shelf-life/history?page=${page}&limit=${limit}`);
   return res.json();
 }
 
 export async function approveBatch(id) {
-  const res = await fetch(`/api/shelf-life/approve/${id}`, { method: 'PUT' });
+  const res = await fetch(`${API_BASE}/api/shelf-life/approve/${id}`, { method: 'PUT' });
   return res.json();
 }
 
 export async function rejectBatch(id) {
-  const res = await fetch(`/api/shelf-life/reject/${id}`, { method: 'PUT' });
+  const res = await fetch(`${API_BASE}/api/shelf-life/reject/${id}`, { method: 'PUT' });
   return res.json();
 }
 
 export async function dispatchBatch(id) {
-  const res = await fetch(`/api/shelf-life/dispatch/${id}`, { method: 'PUT' });
+  const res = await fetch(`${API_BASE}/api/shelf-life/dispatch/${id}`, { method: 'PUT' });
   return res.json();
 }
 
 export async function updateStorageZone(id, storageZone) {
-  const res = await fetch(`/api/shelf-life/storage/${id}`, {
+  const res = await fetch(`${API_BASE}/api/shelf-life/storage/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ storageZone })

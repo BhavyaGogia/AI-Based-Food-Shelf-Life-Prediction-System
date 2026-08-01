@@ -6,6 +6,35 @@ HimShakti Food Processing is introducing an AI-powered system to analyze ingredi
 
 ---
 
+## 🌐 Deployment (Week 9)
+
+| | URL |
+|---|---|
+| **Live Frontend** | https://your-app.vercel.app *(update after deploy)* |
+| **Live Backend API** | https://your-app-api.onrender.com *(update after deploy)* |
+| **Health Check** | https://your-app-api.onrender.com/health |
+
+### Tech Stack Summary
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19 + Vite + Tailwind CSS |
+| **Backend** | Node.js + Express 5 |
+| **Database** | MongoDB Atlas (M0 free tier) |
+| **AI** | Google Gemini 2.5 Flash |
+| **Auth** | JWT (HTTP-only cookie) + Google OAuth |
+| **Frontend Hosting** | Vercel |
+| **Backend Hosting** | Render (Free Web Service) |
+
+### Known Limitations on Free Tier
+
+- **Render cold start:** The backend spins down after **15 minutes of inactivity**. The first request after idle takes **30–60 seconds** to wake up. Subsequent requests are fast.
+- **MongoDB Atlas M0:** Limited to 512 MB storage and shared compute. Sufficient for this app's scale.
+- **Vercel Hobby:** 100 GB bandwidth/month — more than sufficient for demo purposes.
+
+---
+
+
 ## 🏗️ Architecture & Database Schema
 
 The backend uses **Node.js, Express, and MongoDB Atlas (Mongoose ODM)**.

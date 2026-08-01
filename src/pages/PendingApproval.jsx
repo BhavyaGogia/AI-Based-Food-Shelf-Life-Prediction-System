@@ -23,9 +23,7 @@ export default function PendingApproval() {
     setChecking(true);
     setMessage('');
     try {
-      console.log('Checking status...');
       const data = await checkAuth();
-      console.log('Check status response:', data);
       if (data?.success) {
         if (data.data.status === 'active' && data.data.role !== 'unassigned') {
           setMessage('Approved! Redirecting...');

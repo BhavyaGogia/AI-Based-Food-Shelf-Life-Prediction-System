@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -13,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me', {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
         credentials: 'include'
       });
       const data = await res.json();
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
 
   const googleLogin = async (id_token) => {
     try {
-      const res = await fetch('/api/auth/google/verify', {
+      const res = await fetch(`${API_BASE}/api/auth/google/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -114,7 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const onboard = async (role) => {
     try {
-      const res = await fetch('/api/auth/onboard', {
+      const res = await fetch(`${API_BASE}/api/auth/onboard`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -137,7 +138,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { 
+      await fetch(`${API_BASE}/api/auth/logout`, { 
         method: 'POST',
         credentials: 'include'
       });
