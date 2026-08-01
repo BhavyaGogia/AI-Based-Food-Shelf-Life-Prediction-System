@@ -10,9 +10,9 @@ HimShakti Food Processing is introducing an AI-powered system to analyze ingredi
 
 | | URL |
 |---|---|
-| **Live Frontend** | https://your-app.vercel.app *(update after deploy)* |
-| **Live Backend API** | https://your-app-api.onrender.com *(update after deploy)* |
-| **Health Check** | https://your-app-api.onrender.com/health |
+| **Live Frontend** | https://your-app.vercel.app *(update after Vercel deploy)* |
+| **Live Backend API** | https://himshakti-food-shelf-life-backend.onrender.com |
+| **Health Check** | https://himshakti-food-shelf-life-backend.onrender.com/health |
 
 ### Tech Stack Summary
 
