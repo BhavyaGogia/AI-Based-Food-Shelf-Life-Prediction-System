@@ -1,6 +1,25 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { API_BASE } from '../lib/api';
 
+// Token helpers — stored in localStorage so it survives page refresh and
+// is reliably sent through the Vite proxy (cookie forwarding is not guaranteed).
+const getToken = () => localStorage.getItem('hs_token');
+const saveToken = (t) => t ? localStorage.setItem('hs_token', t) : localStorage.removeItem('hs_token');
+
+// Builds fetch options with Authorization header whenever a token is stored.
+const authHeaders = (extra = {}) => {
+  const token = getToken();
+  return {
+    credentials: 'include',
+    ...extra,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(extra.headers || {})
+    }
+  };
+};
+
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
@@ -14,9 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
-        credentials: 'include'
-      });
+      const res = await fetch(`${API_BASE}/api/auth/me`, authHeaders());
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
@@ -25,6 +42,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         return data;
       } else {
+        saveToken(null);
         setUser(null);
         setRole(null);
         setStatus(null);
@@ -52,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       
       if (data.success) {
+        saveToken(data.token);
         setUser(data.data);
         setRole(data.data.role);
         setStatus(data.data.status);
@@ -76,6 +95,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       
       if (data.success) {
+        saveToken(data.token);
         setUser(data.data);
         setRole(data.data.role);
         setStatus(data.data.status);
@@ -100,6 +120,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       
       if (data.success) {
+        saveToken(data.token);
         setUser(data.data);
         setRole(data.data.role);
         setStatus(data.data.status);
@@ -115,12 +136,10 @@ export const AuthProvider = ({ children }) => {
 
   const onboard = async (role) => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/onboard`, {
+      const res = await fetch(`${API_BASE}/api/auth/onboard`, authHeaders({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ role })
-      });
+      }));
       const data = await res.json();
       
       if (data.success) {
@@ -138,13 +157,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch(`${API_BASE}/api/auth/logout`, { 
-        method: 'POST',
-        credentials: 'include'
-      });
+      await fetch(`${API_BASE}/api/auth/logout`, authHeaders({ method: 'POST' }));
     } catch (e) {
       console.error(e);
     }
+    saveToken(null);
     setUser(null);
     setRole(null);
     setStatus(null);
