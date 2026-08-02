@@ -6,31 +6,24 @@ HimShakti Food Processing is introducing an AI-powered system to analyze ingredi
 
 ---
 
-## 🌐 Deployment (Week 9)
+## 🌐 Deployment (Week 9 Deliverables)
 
-| | URL |
-|---|---|
-| **Live Frontend** | https://ai-based-food-shelf-life-prediction.vercel.app |
-| **Live Backend API** | https://himshakti-food-shelf-life-backend.onrender.com |
-| **Health Check** | https://himshakti-food-shelf-life-backend.onrender.com/health |
+### App URLs
+- **Live Frontend URL:** https://ai-based-food-shelf-life-prediction.vercel.app
+- **Live Backend URL:** https://ai-based-food-shelf-life-prediction.vercel.app
+*(Note: Both frontend and backend are now unified on a single Vercel deployment for faster performance)*
 
 ### Tech Stack Summary
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19 + Vite + Tailwind CSS |
-| **Backend** | Node.js + Express 5 |
-| **Database** | MongoDB Atlas (M0 free tier) |
-| **AI** | Google Gemini 2.5 Flash |
-| **Auth** | JWT (HTTP-only cookie) + Google OAuth |
-| **Frontend Hosting** | Vercel |
-| **Backend Hosting** | Render (Free Web Service) |
+- **Frontend:** React 19 + Vite + Tailwind CSS (Hosted on Vercel)
+- **Backend:** Node.js + Express 5 (Serverless Functions on Vercel)
+- **Database:** MongoDB Atlas (M0 free tier)
+- **AI Integration:** Google Gemini 2.5 Flash API
+- **Authentication:** JWT (HTTP-only cookie) + Google OAuth
 
 ### Known Limitations on Free Tier
-
-- **Render cold start:** The backend spins down after **15 minutes of inactivity**. The first request after idle takes **30–60 seconds** to wake up. Subsequent requests are fast.
-- **MongoDB Atlas M0:** Limited to 512 MB storage and shared compute. Sufficient for this app's scale.
-- **Vercel Hobby:** 100 GB bandwidth/month — more than sufficient for demo purposes.
+- **Vercel Serverless Cold Starts:** If the backend isn't used for a while, the Vercel serverless function spins down. The very first request after being idle might take 3-5 seconds to spin up and connect to the database. (Significantly faster than Render's 50-second wake up time).
+- **MongoDB Atlas M0:** Limited to 512 MB storage and shared compute, which is perfectly sufficient for this application's current scale.
+- **Vercel Hobby Tier:** Bandwidth is limited to 100 GB/month, which is more than enough for demo and internship grading purposes.
 
 ---
 
