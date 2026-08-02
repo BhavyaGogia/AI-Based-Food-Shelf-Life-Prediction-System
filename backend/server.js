@@ -1,4 +1,8 @@
 require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Vercel Serverless Function entry point
+// Connects to MongoDB Atlas and serves backend API routes
 const express = require('express');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
