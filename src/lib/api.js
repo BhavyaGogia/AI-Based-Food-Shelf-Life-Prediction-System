@@ -8,12 +8,12 @@
  */
 export const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
-// Keep the Render free-tier backend alive by pinging /health every 10 minutes.
+// Keep the Render free-tier backend alive by pinging /health every 5 minutes.
 // This only runs in production (when VITE_API_URL is set).
 if (import.meta.env.VITE_API_URL) {
   const ping = () =>
     fetch(`${import.meta.env.VITE_API_URL}/health`, { method: 'GET' }).catch(() => {});
   ping(); // Immediate ping on app load to wake up Render if sleeping
-  setInterval(ping, 10 * 60 * 1000); // Then every 10 minutes
+  setInterval(ping, 5 * 60 * 1000); // Then every 5 minutes
 }
 
