@@ -133,7 +133,7 @@ exports.googleVerify = async (req, res, next) => {
     sendTokenResponse(user, 200, res);
   } catch (err) {
     console.error('Google Auth Error:', err);
-    res.status(401).json({ success: false, error: 'Invalid Google token' });
+    res.status(401).json({ success: false, error: `Invalid Google token: ${err.message}` });
   }
 };
 
