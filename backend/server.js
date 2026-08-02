@@ -70,23 +70,33 @@ app.get('/api/stats', async (req, res, next) => {
   }
 });
 
+// ── Serverless DB Middleware ──────────────────────────────────────────────────
+// Ensure DB connection is initiated on every request in Vercel to handle 
+// warm containers that failed to connect on initialization.
+if (process.env.VERCEL) {
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (err) {
+      console.error('Serverless DB Connect Error:', err.message);
+      // Wait, don't crash, just let it proceed to next() and the routes will fail 
+      // or return a proper 500. Actually, returning 500 here is safer.
+      res.status(500).json({ success: false, error: 'Database connection failed' });
+    }
+  });
+}
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/products', productRoutes);
 app.use('/api/shelf-life', shelfLifeLimiter, shelfLifeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 
-// ── 404 Handler ───────────────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ success: false, error: `Route ${req.method} ${req.path} not found` });
-});
-
-// ── Global Error Handler (must be last) ───────────────────────────────────────
+// ── Error Handling ────────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start server locally OR export for Vercel ─────────────────────────────────
-// On Vercel: VERCEL env var is set — we just export the app, Vercel handles the port.
-// On localhost: We start the server normally.
+// ── Startup ───────────────────────────────────────────────────────────────────
 if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5050;
   connectDB().then(() => {
@@ -95,8 +105,6 @@ if (!process.env.VERCEL) {
       console.log(`📡 Health check: http://localhost:${PORT}/health`);
     });
   });
-} else {
-  connectDB(); // Connect DB on cold start in Vercel
 }
 
 module.exports = app;
