@@ -32,6 +32,20 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/test-db', async (req, res) => {
+  try {
+    const start = Date.now();
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      family: 4
+    });
+    const state = mongoose.connection.readyState;
+    res.json({ success: true, state, time: Date.now() - start });
+  } catch (err) {
+    res.json({ success: false, error: err.message, name: err.name, uri: !!process.env.MONGODB_URI });
+  }
+});
+
 // ── Stats Route ───────────────────────────────────────────────────────────────
 app.get('/api/stats', async (req, res, next) => {
   try {
