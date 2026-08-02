@@ -14,9 +14,16 @@ async function connectDB() {
     return;
   }
 
-  // Return existing connection if already established
-  if (cached.conn) {
+  // Return existing connection if already established and healthy
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
+  }
+
+  // If connection exists but is disconnected (container warmed up but socket died), reset it
+  if (cached.conn && mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
+    console.log('⚠️ Reconnecting MongoDB: Socket was dropped.');
+    cached.promise = null;
+    cached.conn = null;
   }
 
   // If a connection is already being established, wait for it
