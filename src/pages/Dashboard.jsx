@@ -137,7 +137,8 @@ export default function Dashboard() {
       })
       .catch(err => {
         console.error('Failed to fetch products:', err)
-        setProductsError('Unable to connect to the backend server.')
+        setProductsError('Unable to connect to the backend server. Please wait a moment and refresh — the server may be waking up.')
+
       })
       .finally(() => {
         setProductsLoading(false)

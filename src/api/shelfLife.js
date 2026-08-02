@@ -6,15 +6,23 @@ import { API_BASE } from '../lib/api';
  * @param {Object} params - Query parameters.
  * @returns {Promise<Object>} API response.
  */
-export async function getProducts(params = {}) {
+export async function getProducts(params = {}, retries = 3) {
   const query = new URLSearchParams(params).toString();
   const url = `${API_BASE}/api/products${query ? `?${query}` : ''}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response.json();
+  } catch (err) {
+    if (retries > 0) {
+      // Render free tier cold start can take 30-50s. Wait 15s and retry.
+      await new Promise(r => setTimeout(r, 15000));
+      return getProducts(params, retries - 1);
+    }
+    throw err;
   }
-  return response.json();
 }
+
 
 /**
  * Fetch dynamic system stats from the backend.
