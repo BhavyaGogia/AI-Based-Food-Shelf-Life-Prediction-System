@@ -65,7 +65,7 @@ exports.updateUserRole = async (req, res, next) => {
     }
 
     if (role) {
-      if (!['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'admin'].includes(role)) {
+      if (!['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'quality-inspector', 'admin'].includes(role)) {
         return res.status(400).json({ success: false, error: 'Invalid role' });
       }
       user.role = role;

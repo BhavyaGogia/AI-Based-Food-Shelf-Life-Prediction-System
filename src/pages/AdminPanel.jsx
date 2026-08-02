@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../lib/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CosmicCanvas from '../components/CosmicCanvas';
 import EmptyState from '../components/EmptyState';
 import { Navigate } from 'react-router-dom';
+
+// Send Bearer token on every admin request (required for cross-origin Vercel → Render)
+const adminFetch = (url, opts = {}) => {
+  const token = localStorage.getItem('hs_token');
+  return fetch(`${API_BASE}${url}`, {
+    credentials: 'include',
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(opts.headers || {})
+    }
+  });
+};
 
 export default function AdminPanel() {
   const { user, role, isAuthenticated } = useAuth();
@@ -14,12 +29,12 @@ export default function AdminPanel() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/admin/users', {
-        credentials: 'include'
-      });
+      const res = await adminFetch('/api/admin/users');
       const data = await res.json();
       if (data.success) {
         setUsers(data.data);
+      } else {
+        console.error('Admin fetch failed:', data.error);
       }
     } catch (err) {
       console.error('Failed to fetch users', err);
@@ -40,10 +55,7 @@ export default function AdminPanel() {
 
   const handleApprove = async (id) => {
     try {
-      const res = await fetch(`/api/admin/users/${id}/approve`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
+      const res = await adminFetch(`/api/admin/users/${id}/approve`, { method: 'PUT' });
       if (res.ok) fetchUsers();
     } catch (err) {
       console.error(err);
@@ -52,10 +64,7 @@ export default function AdminPanel() {
 
   const handleReject = async (id) => {
     try {
-      const res = await fetch(`/api/admin/users/${id}/reject`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
+      const res = await adminFetch(`/api/admin/users/${id}/reject`, { method: 'PUT' });
       if (res.ok) fetchUsers();
     } catch (err) {
       console.error(err);
@@ -64,10 +73,8 @@ export default function AdminPanel() {
 
   const handleRoleChange = async (id, newRole, newStatus) => {
     try {
-      const res = await fetch(`/api/admin/users/${id}/role`, {
+      const res = await adminFetch(`/api/admin/users/${id}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ role: newRole, status: newStatus })
       });
       if (res.ok) fetchUsers();
@@ -185,6 +192,8 @@ export default function AdminPanel() {
                               <option value="unassigned">Unassigned</option>
                               <option value="production_staff">Production Staff</option>
                               <option value="warehouse_supervisor">Warehouse Supervisor</option>
+                              <option value="quality-inspector">Quality Inspector</option>
+                              <option value="lab_admin">Lab Admin</option>
                               <option value="admin">Admin</option>
                             </select>
                           </td>

@@ -27,8 +27,7 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'admin'],
-    default: 'unassigned'
+    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'quality-inspector', 'lab_admin', 'admin'],
   },
   status: {
     type: String,
@@ -37,8 +36,7 @@ const UserSchema = new mongoose.Schema({
   },
   requestedRole: {
     type: String,
-    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'lab_admin', 'admin'],
-    default: 'unassigned'
+    enum: ['unassigned', 'production_staff', 'warehouse_supervisor', 'quality-inspector', 'lab_admin', 'admin'],
   }
 }, { timestamps: true });
 
