@@ -29,8 +29,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Use environment variable for Google Client ID, with a fallback for demonstration
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '123456789-placeholder.apps.googleusercontent.com';
+// Use the actual Google Client ID. (Client IDs are public and safe to expose in frontend code)
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '687969027894-a40qa6v1nv2cms1a9v075dip28ukmsvk.apps.googleusercontent.com';
 
 export default function App() {
   return (
