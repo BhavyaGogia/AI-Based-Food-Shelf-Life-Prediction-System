@@ -1,0 +1,24 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # Runs every 10 minutes — prevents Render free tier from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HimShakti Backend Health Endpoint
+        run: |
+          echo "Pinging backend at $(date)..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://himshakti-food-shelf-life-backend.onrender.com/health \
+            --max-time 60)
+          echo "HTTP Status: $response"
+          if [ "$response" = "200" ]; then
+            echo "✅ Backend is alive!"
+          else
+            echo "⚠️ Backend returned status: $response"
+          fi
