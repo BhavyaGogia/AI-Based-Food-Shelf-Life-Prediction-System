@@ -53,7 +53,8 @@ app.get('/api/stats', async (req, res, next) => {
       return res.json({
         success: true,
         mocked: true,
-        data: { analysesRun: 1250, productsTracked: 35, safeBatches: 32, riskWarnings: 3 }
+        data: { analysesRun: 1250, productsTracked: 35, safeBatches: 32, riskWarnings: 3 },
+        debugUri: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 15) : 'missing'
       });
     }
     const Product = require('./src/models/Product.model');
