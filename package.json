@@ -10,7 +10,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "backend": "npm run dev --prefix backend"
+    "backend": "npm run dev --prefix backend",
+    "deploy": "echo 'Triggering Vercel deployment...'"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
